@@ -1,0 +1,6 @@
+org.jbox2d.testbed.framework
+org.jbox2d.testbed.framework.j2d
+org.jbox2d.testbed.perf
+org.jbox2d.testbed.pooling
+org.jbox2d.testbed.tests
+org.jbox2d.tests.math

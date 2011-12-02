@@ -1,0 +1,10 @@
+Swimming:
+
+Layered Dynamic Control for Interactive Character Swimming
+	http://www.dgp.toronto.edu/~paulyang/swimmer/index.html
+Rigid Fluid: Animating the Interplay Between Rigid Bodies and Fluid
+	http://www.cc.gatech.edu/~turk/my_papers/rigid_fluid.pdf
+Articulated Swimming Creatures
+	http://www.cc.gatech.edu/~jtan34/project/articulatedSwimmingCreatures.html
+
+Muscle Models:
