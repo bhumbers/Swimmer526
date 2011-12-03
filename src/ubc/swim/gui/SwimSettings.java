@@ -24,22 +24,22 @@
 /**
  * Created at 1:58:18 PM Jul 17, 2010
  */
-package org.jbox2d.testbed.framework;
+package ubc.swim.gui;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
+import org.jbox2d.testbed.framework.TestbedSetting;
 import org.jbox2d.testbed.framework.TestbedSetting.SettingType;
 
 /**
- * List of swimmer app settings.  Automatically populates default settings.
- * Modeled on org.jbox2d.testbed.framework.TestbedSettings by Daniel Murphy
+ * Stores all the testbed settings.  Automatically populates default settings.
  * 
- * @author Ben Humberston
+ * @author Daniel Murphy
  */
-public class TestbedSettings {
+public class SwimSettings {
   public static final String Hz = "Hz";
   public static final String PositionIterations = "Pos Iters";
   public static final String VelocityIterations = "Vel Iters";
@@ -62,7 +62,7 @@ public class TestbedSettings {
   private ArrayList<TestbedSetting> settings;
   private final HashMap<String, TestbedSetting> settingsMap;
 
-  public TestbedSettings() {
+  public SwimSettings() {
     settings = new ArrayList<TestbedSetting>();
     settingsMap = new HashMap<String, TestbedSetting>();
     populateDefaultSettings();

@@ -35,6 +35,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Controls GUI update loop for Swimmer App.
+ * Modeled on org.jbox2d.testbed.framework.TestbedController by Daniel Murphy
  * @author Ben Humberston
  *
  */

@@ -13,6 +13,7 @@ import org.jbox2d.testbed.framework.j2d.TestbedSidePanel;
 
 /**
  * Primary window frame for Swim application.
+ * Modeled on org.jbox2d.testbed.framework.TestbedFrame by Daniel Murphy
  * @author Ben Humberston
  *
  */

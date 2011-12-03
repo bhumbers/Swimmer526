@@ -31,16 +31,15 @@ import org.jbox2d.callbacks.DebugDraw;
 import org.jbox2d.common.Vec2;
 
 /**
- * Model for the testbed
- * 
- * @author Daniel
+ * GUI model for Swimmer App. Modeled on org.jbox2d.testbed.framework.TestbedModel by Daniel Murphy
+ * @author Ben Humberston
+ *
  */
-public class TestbedModel {
+public class SwimModel {
 
   private final DefaultComboBoxModel tests = new DefaultComboBoxModel();
-  private final TestbedSettings settings = new TestbedSettings();
+  private final SwimSetting settings = new SwimSetting();
   private DebugDraw draw;
-  private TestbedTest test;
   private final Vec2 mouse = new Vec2();
   private final Vector<TestChangedListener> listeners = new Vector<TestChangedListener>();
   private final boolean[] keys = new boolean[512];
