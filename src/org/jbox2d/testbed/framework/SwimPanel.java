@@ -22,37 +22,60 @@
  * POSSIBILITY OF SUCH DAMAGE.
  ******************************************************************************/
 /**
- * Created at 4:23:48 PM Jul 17, 2010
+ * Created at 3:13:48 AM Jul 17, 2010
  */
 package org.jbox2d.testbed.framework;
 
-import javax.swing.JFrame;
-import javax.swing.UIManager;
+import java.awt.event.KeyListener;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
 
-import org.jbox2d.testbed.framework.j2d.TestPanelJ2D;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import org.jbox2d.callbacks.DebugDraw;
 
 /**
- * The entry point for the testbed application
+ * A TestbedPanel encapsulates the graphical panel displayed to the user. Also it is responsible for
+ * populating panel-specific data in the model (like panel width).
+ * 
  * @author Daniel Murphy
  */
-public class TestbedMain {
-  private static final Logger log = LoggerFactory.getLogger(TestbedMain.class);
+public interface SwimPanel {
 
-  public static void main(String[] args) {
-    try {
-      UIManager.setLookAndFeel("com.sun.java.swing.plaf.nimbus.NimbusLookAndFeel");
-    } catch (Exception e) {
-      log.warn("Could not set the look and feel to nimbus.  "
-          + "Hopefully you're on a mac so the window isn't ugly as crap.");
-    }
-    TestbedModel model = new TestbedModel();
-    TestbedPanel panel = new TestPanelJ2D(model);
-    TestList.populateModel(model);
-    JFrame testbed = new TestbedFrame(model, panel);
-    testbed.setVisible(true);
-    testbed.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-  }
+  /**
+   * Adds a key listener
+   * 
+   * @param argListener
+   */
+  public void addKeyListener(KeyListener argListener);
+
+  /**
+   * Adds a mouse listener
+   * 
+   * @param argListener
+   */
+  public void addMouseListener(MouseListener argListener);
+
+  /**
+   * Adds a mouse motion listener
+   * 
+   * @param argListener
+   */
+  public void addMouseMotionListener(MouseMotionListener argListener);
+
+  public void grabFocus();
+
+  /**
+   * Gets the display-specific debug draw
+   * @return
+   */
+  public DebugDraw getDebugDraw();
+
+  /**
+   * Renders the world
+   */
+  public void render();
+
+  /**
+   * Paints the rendered world to the screen
+   */
+  public void paintScreen();
 }

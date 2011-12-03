@@ -31,13 +31,13 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
-import org.jbox2d.testbed.framework.TestbedSetting;
-import org.jbox2d.testbed.framework.TestbedSetting.SettingType;
+import ubc.swim.gui.SwimSetting.SettingType;
 
 /**
- * Stores all the testbed settings.  Automatically populates default settings.
+ * Stores swimmer app settings. Populated to defaults.
+ * Adapted from org.jbox2d.testbed.framework.TestbedSettings by Daniel Murphy
  * 
- * @author Daniel Murphy
+ * @author Ben Humberston
  */
 public class SwimSettings {
   public static final String Hz = "Hz";
@@ -59,38 +59,38 @@ public class SwimSettings {
   public boolean pause = false;
   public boolean singleStep = false;
 
-  private ArrayList<TestbedSetting> settings;
-  private final HashMap<String, TestbedSetting> settingsMap;
+  private ArrayList<SwimSetting> settings;
+  private final HashMap<String, SwimSetting> settingsMap;
 
   public SwimSettings() {
-    settings = new ArrayList<TestbedSetting>();
-    settingsMap = new HashMap<String, TestbedSetting>();
+    settings = new ArrayList<SwimSetting>();
+    settingsMap = new HashMap<String, SwimSetting>();
     populateDefaultSettings();
   }
 
   private void populateDefaultSettings() {
-    addSetting(new TestbedSetting(Hz, SettingType.ENGINE, 60, 1, 400));
-    addSetting(new TestbedSetting(PositionIterations, SettingType.ENGINE, 3, 0, 100));
-    addSetting(new TestbedSetting(VelocityIterations, SettingType.ENGINE, 8, 1, 100));
-    addSetting(new TestbedSetting(WarmStarting, SettingType.ENGINE, true));
-    addSetting(new TestbedSetting(ContinuousCollision, SettingType.ENGINE, true));
-    addSetting(new TestbedSetting(DrawShapes, SettingType.DRAWING, true));
-    addSetting(new TestbedSetting(DrawJoints, SettingType.DRAWING, true));
-    addSetting(new TestbedSetting(DrawAABBs, SettingType.DRAWING, false));
-    addSetting(new TestbedSetting(DrawPairs, SettingType.DRAWING, false));
-    addSetting(new TestbedSetting(DrawContactPoints, SettingType.DRAWING, false));
-    addSetting(new TestbedSetting(DrawNormals, SettingType.DRAWING, false));
-    addSetting(new TestbedSetting(DrawCOMs, SettingType.DRAWING, false));
-    addSetting(new TestbedSetting(DrawStats, SettingType.DRAWING, true));
-    addSetting(new TestbedSetting(DrawHelp, SettingType.DRAWING, false));
-    addSetting(new TestbedSetting(DrawTree, SettingType.DRAWING, false));
+    addSetting(new SwimSetting(Hz, SettingType.ENGINE, 60, 1, 400));
+    addSetting(new SwimSetting(PositionIterations, SettingType.ENGINE, 3, 0, 100));
+    addSetting(new SwimSetting(VelocityIterations, SettingType.ENGINE, 8, 1, 100));
+    addSetting(new SwimSetting(WarmStarting, SettingType.ENGINE, true));
+    addSetting(new SwimSetting(ContinuousCollision, SettingType.ENGINE, true));
+    addSetting(new SwimSetting(DrawShapes, SettingType.DRAWING, true));
+    addSetting(new SwimSetting(DrawJoints, SettingType.DRAWING, true));
+    addSetting(new SwimSetting(DrawAABBs, SettingType.DRAWING, false));
+    addSetting(new SwimSetting(DrawPairs, SettingType.DRAWING, false));
+    addSetting(new SwimSetting(DrawContactPoints, SettingType.DRAWING, false));
+    addSetting(new SwimSetting(DrawNormals, SettingType.DRAWING, false));
+    addSetting(new SwimSetting(DrawCOMs, SettingType.DRAWING, false));
+    addSetting(new SwimSetting(DrawStats, SettingType.DRAWING, true));
+    addSetting(new SwimSetting(DrawHelp, SettingType.DRAWING, false));
+    addSetting(new SwimSetting(DrawTree, SettingType.DRAWING, false));
   }
 
   /**
    * Adds a settings to the settings list
    * @param argSetting
    */
-  public void addSetting(TestbedSetting argSetting) {
+  public void addSetting(SwimSetting argSetting) {
     if (settingsMap.containsKey(argSetting.name)) {
       throw new IllegalArgumentException("Settings already contain a setting with name: "
           + argSetting.name);
@@ -103,7 +103,7 @@ public class SwimSettings {
    * Returns an unmodifiable list of settings
    * @return
    */
-  public List<TestbedSetting> getSettings() {
+  public List<SwimSetting> getSettings() {
     return Collections.unmodifiableList(settings);
   }
 
@@ -112,7 +112,7 @@ public class SwimSettings {
    * @param argName
    * @return
    */
-  public TestbedSetting getSetting(String argName) {
+  public SwimSetting getSetting(String argName) {
     return settingsMap.get(argName);
   }
 }

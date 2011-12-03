@@ -44,9 +44,9 @@ public class SwimController implements Runnable {
 
   public static final int DEFAULT_FPS = 60;
 
-  private TestbedTest currTest = null;
-  private TestbedTest nextTest = null;
-
+  private SwimTest currTest = null;
+  private SwimTest nextTest = null;
+  
   private long startTime;
   private long frameCount;
   private int targetFrameRate;
@@ -54,22 +54,22 @@ public class SwimController implements Runnable {
   private boolean animating = false;
   private Thread animator;
 
-  private final TestbedModel model;
-  private final TestbedPanel panel;
+  private final SwimModel model;
+  private final SwimPanel panel;
 
-  public SwimController(TestbedModel argModel, TestbedPanel argPanel) {
+  public SwimController(SwimModel argModel, SwimWorldPanel argPanel) {
     model = argModel;
     setFrameRate(DEFAULT_FPS);
     panel = argPanel;
-    animator = new Thread(this, "Testbed");
+    animator = new Thread(this, "SwimController");
     addListeners();
   }
   
   private void addListeners(){
     // time for our controlling
-    model.addTestChangeListener(new TestbedModel.TestChangedListener() {
+    model.addTestChangeListener(new SwimModel.TestChangedListener() {
       @Override
-      public void testChanged(TestbedTest argTest, int argIndex) {
+      public void testChanged(SwimTest argTest, int argIndex) {
         nextTest = argTest;
         panel.grabFocus();
       }

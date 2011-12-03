@@ -38,8 +38,9 @@ import org.jbox2d.common.Vec2;
 public class SwimModel {
 
   private final DefaultComboBoxModel tests = new DefaultComboBoxModel();
-  private final SwimSetting settings = new SwimSetting();
+  private final SwimSettings settings = new SwimSettings();
   private DebugDraw draw;
+  private SwimTest test;
   private final Vec2 mouse = new Vec2();
   private final Vector<TestChangedListener> listeners = new Vector<TestChangedListener>();
   private final boolean[] keys = new boolean[512];
@@ -48,7 +49,7 @@ public class SwimModel {
   private float panelWidth;
   private int currTestIndex;
   
-  public TestbedModel() {
+  public SwimModel() {
   }
 
   public void setCalculatedFps(float calculatedFps) {
@@ -75,7 +76,7 @@ public class SwimModel {
     return draw;
   }
 
-  public TestbedTest getCurrTest() {
+  public SwimTest getCurrTest() {
     return test;
   }
 
@@ -136,7 +137,7 @@ public class SwimModel {
     listeners.remove(argListener);
   }
 
-  public void addTest(TestbedTest argTest) {
+  public void addTest(SwimTest argTest) {
     tests.addElement(new ListItem(argTest));
   }
 
@@ -144,7 +145,7 @@ public class SwimModel {
     tests.addElement(new ListItem(argName));
   }
 
-  public TestbedTest getTestAt(int argIndex) {
+  public SwimTest getTestAt(int argIndex) {
     ListItem item = (ListItem) tests.getElementAt(argIndex);
     if (item.isCategory()) {
       return null;
@@ -169,19 +170,19 @@ public class SwimModel {
     return tests;
   }
 
-  public TestbedSettings getSettings() {
+  public SwimSettings getSettings() {
     return settings;
   }
 
   public class ListItem {
     public String category;
-    public TestbedTest test;
+    public SwimTest test;
 
     public ListItem(String argCategory) {
       category = argCategory;
     }
 
-    public ListItem(TestbedTest argTest) {
+    public ListItem(SwimTest argTest) {
       test = argTest;
     }
 
@@ -196,6 +197,6 @@ public class SwimModel {
   }
 
   public static interface TestChangedListener {
-    public void testChanged(TestbedTest argTest, int argIndex);
+    public void testChanged(SwimTest argTest, int argIndex);
   }
 }

@@ -22,37 +22,23 @@
  * POSSIBILITY OF SUCH DAMAGE.
  ******************************************************************************/
 /**
- * Created at 4:23:48 PM Jul 17, 2010
+ * Created at 5:34:33 PM Jul 17, 2010
  */
-package org.jbox2d.testbed.framework;
+package ubc.swim.gui;
 
-import javax.swing.JFrame;
-import javax.swing.UIManager;
-
-import org.jbox2d.testbed.framework.j2d.TestPanelJ2D;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import ubc.swim.tests.SliderCrankTest;
 
 /**
- * The entry point for the testbed application
- * @author Daniel Murphy
+ * Hard-coded list of tests that appear in swimmer app dropdown.
+ * Adapted from org.jbox2d.testbed.framework.TestList by Daniel Murphy
+ * 
+ * @author Ben Humberston
  */
-public class TestbedMain {
-  private static final Logger log = LoggerFactory.getLogger(TestbedMain.class);
-
-  public static void main(String[] args) {
-    try {
-      UIManager.setLookAndFeel("com.sun.java.swing.plaf.nimbus.NimbusLookAndFeel");
-    } catch (Exception e) {
-      log.warn("Could not set the look and feel to nimbus.  "
-          + "Hopefully you're on a mac so the window isn't ugly as crap.");
-    }
-    TestbedModel model = new TestbedModel();
-    TestbedPanel panel = new TestPanelJ2D(model);
-    TestList.populateModel(model);
-    JFrame testbed = new TestbedFrame(model, panel);
-    testbed.setVisible(true);
-    testbed.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+public class SwimTestList {
+  
+  public static void populateModel(SwimModel argModel){
+      
+      argModel.addCategory("Featured");
+      argModel.addTest(new SliderCrankTest());
   }
 }

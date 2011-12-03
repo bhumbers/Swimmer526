@@ -8,7 +8,6 @@ import javax.swing.JScrollPane;
 
 import org.jbox2d.testbed.framework.TestbedController;
 import org.jbox2d.testbed.framework.TestbedModel;
-import org.jbox2d.testbed.framework.TestbedPanel;
 import org.jbox2d.testbed.framework.j2d.TestbedSidePanel;
 
 /**
@@ -18,18 +17,18 @@ import org.jbox2d.testbed.framework.j2d.TestbedSidePanel;
  *
  */
 public class SwimFrame extends JFrame {
-	  private TestbedSidePanel side;
+	  private SwimSidePanel side;
 	  private SwimModel model;
 	  private SwimController controller;
 
-	  public TestbedFrame(SwimModel argModel, SwimController argPanel) {
+	  public SwimFrame(SwimModel argModel, SwimWorldPanel argPanel) {
 	    super("Swimmer App");
 	    setLayout(new BorderLayout());
 
 	    model = argModel;
 	    model.setDebugDraw(argPanel.getDebugDraw());
-	    controller = new TestbedController(model, argPanel);
-	    side = new TestbedSidePanel(model, controller);
+	    controller = new SwimController(model, argPanel);
+	    side = new SwimSidePanel(model, controller);
 	    
 	    add((Component) argPanel, "Center");
 	    add(new JScrollPane(side), "East");

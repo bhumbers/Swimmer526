@@ -34,6 +34,7 @@ import javax.swing.JScrollPane;
 
 import org.jbox2d.testbed.framework.j2d.TestbedSidePanel;
 
+
 /**
  * The testbed frame. Contains all stuff. Make sure you call {@link #setVisible(boolean)} and
  * {@link #setDefaultCloseOperation(int)}.
