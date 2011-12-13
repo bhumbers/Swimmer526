@@ -68,9 +68,6 @@ import org.jbox2d.serialization.JbDeserializer.ObjectListener;
 import org.jbox2d.serialization.JbSerializer.ObjectSigner;
 import org.jbox2d.serialization.pb.PbDeserializer;
 import org.jbox2d.serialization.pb.PbSerializer;
-import org.jbox2d.testbed.framework.ContactPoint;
-import org.jbox2d.testbed.framework.TestbedModel;
-import org.jbox2d.testbed.framework.TestbedSettings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -213,14 +210,14 @@ public abstract class SwimTest implements ContactListener, ObjectListener,
 		init(m_world, false);
 	}
 
-	public void init(World argWorld, boolean argDeserialized) {
+	public void init(World world, boolean deserialized) {
 		pointCount = 0;
 		stepCount = 0;
 		bombSpawning = false;
 
-		argWorld.setDestructionListener(destructionListener);
-		argWorld.setContactListener(this);
-		argWorld.setDebugDraw(model.getDebugDraw());
+		world.setDestructionListener(destructionListener);
+		world.setContactListener(this);
+		world.setDebugDraw(model.getDebugDraw());
 
 		if (hasCachedCamera) {
 			setCamera(cachedCameraPos, cachedCameraScale);
@@ -229,7 +226,7 @@ public abstract class SwimTest implements ContactListener, ObjectListener,
 		}
 		setTitle(getTestName());
 
-		initTest(argDeserialized);
+		initTest(deserialized);
 	}
 
 	/**
@@ -486,11 +483,11 @@ public abstract class SwimTest implements ContactListener, ObjectListener,
 	/**
 	 * Initializes the current test
 	 * 
-	 * @param argDeserialized
+	 * @param deserialized
 	 *            if the test was deserialized from a file. If so, all physics
 	 *            objects were already added.
 	 */
-	public abstract void initTest(boolean argDeserialized);
+	public abstract void initTest(boolean deserialized);
 
 	/**
 	 * The name of the test
@@ -567,7 +564,7 @@ public abstract class SwimTest implements ContactListener, ObjectListener,
 	private final Vec2 p2 = new Vec2();
 
 	public synchronized void step(SwimSettings settings) {
-		float hz = settings.getSetting(TestbedSettings.Hz).value;
+		float hz = settings.getSetting(SwimSettings.Hz).value;
 		float timeStep = hz > 0f ? 1f / hz : 0;
 		if (settings.singleStep && !settings.pause) {
 			settings.pause = true;
@@ -587,30 +584,30 @@ public abstract class SwimTest implements ContactListener, ObjectListener,
 
 		int flags = 0;
 		model.getDebugDraw();
-		flags += settings.getSetting(TestbedSettings.DrawShapes).enabled ? DebugDraw.e_shapeBit
+		flags += settings.getSetting(SwimSettings.DrawShapes).enabled ? DebugDraw.e_shapeBit
 				: 0;
-		flags += settings.getSetting(TestbedSettings.DrawJoints).enabled ? DebugDraw.e_jointBit
+		flags += settings.getSetting(SwimSettings.DrawJoints).enabled ? DebugDraw.e_jointBit
 				: 0;
-		flags += settings.getSetting(TestbedSettings.DrawAABBs).enabled ? DebugDraw.e_aabbBit
+		flags += settings.getSetting(SwimSettings.DrawAABBs).enabled ? DebugDraw.e_aabbBit
 				: 0;
-		flags += settings.getSetting(TestbedSettings.DrawPairs).enabled ? DebugDraw.e_pairBit
+		flags += settings.getSetting(SwimSettings.DrawPairs).enabled ? DebugDraw.e_pairBit
 				: 0;
-		flags += settings.getSetting(TestbedSettings.DrawCOMs).enabled ? DebugDraw.e_centerOfMassBit
+		flags += settings.getSetting(SwimSettings.DrawCOMs).enabled ? DebugDraw.e_centerOfMassBit
 				: 0;
-		flags += settings.getSetting(TestbedSettings.DrawTree).enabled ? DebugDraw.e_dynamicTreeBit
+		flags += settings.getSetting(SwimSettings.DrawTree).enabled ? DebugDraw.e_dynamicTreeBit
 				: 0;
 		model.getDebugDraw().setFlags(flags);
 
 		m_world.setWarmStarting(settings
-				.getSetting(TestbedSettings.WarmStarting).enabled);
+				.getSetting(SwimSettings.WarmStarting).enabled);
 		m_world.setContinuousPhysics(settings
-				.getSetting(TestbedSettings.ContinuousCollision).enabled);
+				.getSetting(SwimSettings.ContinuousCollision).enabled);
 
 		pointCount = 0;
 
 		m_world.step(timeStep,
-				settings.getSetting(TestbedSettings.VelocityIterations).value,
-				settings.getSetting(TestbedSettings.PositionIterations).value);
+				settings.getSetting(SwimSettings.VelocityIterations).value,
+				settings.getSetting(SwimSettings.PositionIterations).value);
 
 		m_world.drawDebugData();
 
@@ -618,7 +615,7 @@ public abstract class SwimTest implements ContactListener, ObjectListener,
 			++stepCount;
 		}
 
-		if (settings.getSetting(TestbedSettings.DrawStats).enabled) {
+		if (settings.getSetting(SwimSettings.DrawStats).enabled) {
 			// Vec2.watchCreations = true;
 			model.getDebugDraw().drawString(5, m_textLine, "Engine Info",
 					color4);
@@ -637,7 +634,7 @@ public abstract class SwimTest implements ContactListener, ObjectListener,
 			m_textLine += 20;
 		}
 
-		if (settings.getSetting(TestbedSettings.DrawHelp).enabled) {
+		if (settings.getSetting(SwimSettings.DrawHelp).enabled) {
 			model.getDebugDraw().drawString(5, m_textLine, "Help", color4);
 			m_textLine += 15;
 			model.getDebugDraw().drawString(5, m_textLine,
@@ -684,7 +681,7 @@ public abstract class SwimTest implements ContactListener, ObjectListener,
 					Color3f.WHITE);
 		}
 
-		if (settings.getSetting(TestbedSettings.DrawContactPoints).enabled) {
+		if (settings.getSetting(SwimSettings.DrawContactPoints).enabled) {
 			final float axisScale = .3f;
 
 			for (int i = 0; i < pointCount; i++) {
@@ -697,7 +694,7 @@ public abstract class SwimTest implements ContactListener, ObjectListener,
 					model.getDebugDraw().drawPoint(point.position, 5f, color2);
 				}
 
-				if (settings.getSetting(TestbedSettings.DrawNormals).enabled) {
+				if (settings.getSetting(SwimSettings.DrawNormals).enabled) {
 					p1.set(point.position);
 					p2.set(point.normal).mulLocal(axisScale).addLocal(p1);
 					model.getDebugDraw().drawSegment(p1, p2, color3);

@@ -22,24 +22,22 @@
  * POSSIBILITY OF SUCH DAMAGE.
  ******************************************************************************/
 /**
- * Created at 5:34:33 PM Jul 17, 2010
+ * Created at 2:12:15 PM Jul 17, 2010
  */
 package ubc.swim.gui;
 
-import ubc.swim.tests.BasicSwimTest;
-
+import org.jbox2d.collision.Collision.PointState;
+import org.jbox2d.common.Vec2;
+import org.jbox2d.dynamics.Fixture;
 
 /**
- * Hard-coded list of tests that appear in swimmer app dropdown.
- * Adapted from org.jbox2d.testbed.framework.TestList by Daniel Murphy
- * 
+ * Adapted from JBox2D testbed ContactPoint by Daniel Murphy
  * @author Ben Humberston
  */
-public class SwimTestList {
-  
-  public static void populateModel(SwimModel argModel){
-      
-      argModel.addCategory("Featured");
-      argModel.addTest(new BasicSwimTest());
-  }
+public class ContactPoint {
+	public Fixture fixtureA;
+	public Fixture fixtureB;
+	public final Vec2 normal = new Vec2();
+	public final Vec2 position = new Vec2();
+	public PointState state;
 }

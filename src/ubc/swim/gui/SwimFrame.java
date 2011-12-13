@@ -6,10 +6,6 @@ import java.awt.Component;
 import javax.swing.JFrame;
 import javax.swing.JScrollPane;
 
-import org.jbox2d.testbed.framework.TestbedController;
-import org.jbox2d.testbed.framework.TestbedModel;
-import org.jbox2d.testbed.framework.j2d.TestbedSidePanel;
-
 /**
  * Primary window frame for Swim application.
  * Modeled on org.jbox2d.testbed.framework.TestbedFrame by Daniel Murphy
