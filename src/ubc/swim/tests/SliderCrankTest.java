@@ -40,7 +40,6 @@ import org.jbox2d.dynamics.joints.RevoluteJoint;
 import org.jbox2d.dynamics.joints.RevoluteJointDef;
 
 import ubc.swim.gui.SwimSettings;
-import ubc.swim.gui.SwimTest;
 
 /**
  * @author Daniel Murphy

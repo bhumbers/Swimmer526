@@ -44,6 +44,8 @@ import org.jbox2d.common.Vec2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import ubc.swim.tests.SwimTest;
+
 /**
  * Adapted from org.jbox2d.testbed.framework.j2d.TestPanelJ2D by Daniel Murphy 
  * 

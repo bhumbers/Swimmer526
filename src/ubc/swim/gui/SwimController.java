@@ -33,6 +33,8 @@ import org.jbox2d.common.Vec2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import ubc.swim.tests.SwimTest;
+
 /**
  * Controls GUI update loop for Swimmer App.
  * Modeled on org.jbox2d.testbed.framework.TestbedController by Daniel Murphy
@@ -208,14 +210,6 @@ public class SwimController implements Runnable {
   
   public void resetTest(){
     model.getCurrTest().reset();
-  }
-
-  public void saveTest() {
-    model.getCurrTest().save();
-  }
-
-  public void loadTest() {
-    model.getCurrTest().load();
   }
 
   public void lastTest() {

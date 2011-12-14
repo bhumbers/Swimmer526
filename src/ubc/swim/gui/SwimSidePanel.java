@@ -49,6 +49,7 @@ import javax.swing.event.ChangeListener;
 
 import ubc.swim.gui.SwimModel.ListItem;
 import ubc.swim.gui.SwimSetting.SettingType;
+import ubc.swim.tests.SwimTest;
 
 
 /**
@@ -73,8 +74,8 @@ public class SwimSidePanel extends JPanel implements ChangeListener, ActionListe
   private JButton resetButton = new JButton("Reset");
   private JButton quitButton = new JButton("Quit");
 
-  public JButton saveButton = new JButton("Save");
-  public JButton loadButton = new JButton("Load");
+//  public JButton saveButton = new JButton("Save");
+//  public JButton loadButton = new JButton("Load");
 
   public SwimSidePanel(SwimModel argModel, SwimController argController) {
     model = argModel;
@@ -86,8 +87,8 @@ public class SwimSidePanel extends JPanel implements ChangeListener, ActionListe
       @Override
       public void testChanged(SwimTest argTest, int argIndex) {
         tests.setSelectedIndex(argIndex);
-        saveButton.setEnabled(argTest.isSaveLoadEnabled());
-        loadButton.setEnabled(argTest.isSaveLoadEnabled());
+//        saveButton.setEnabled(argTest.isSaveLoadEnabled());
+//        loadButton.setEnabled(argTest.isSaveLoadEnabled());
       }
     });
   }
@@ -168,8 +169,8 @@ public class SwimSidePanel extends JPanel implements ChangeListener, ActionListe
     pauseButton.setAlignmentX(CENTER_ALIGNMENT);
     stepButton.setAlignmentX(CENTER_ALIGNMENT);
     resetButton.setAlignmentX(CENTER_ALIGNMENT);
-    saveButton.setAlignmentX(CENTER_ALIGNMENT);
-    loadButton.setAlignmentX(CENTER_ALIGNMENT);
+//    saveButton.setAlignmentX(CENTER_ALIGNMENT);
+//    loadButton.setAlignmentX(CENTER_ALIGNMENT);
     quitButton.setAlignmentX(CENTER_ALIGNMENT);
 
     Box buttonGroups = Box.createHorizontalBox();
@@ -184,8 +185,8 @@ public class SwimSidePanel extends JPanel implements ChangeListener, ActionListe
 
     JPanel buttons3 = new JPanel();
     buttons3.setLayout(new GridLayout(0, 1));
-    buttons3.add(saveButton);
-    buttons3.add(loadButton);
+//    buttons3.add(saveButton);
+//    buttons3.add(loadButton);
     buttons3.add(quitButton);
 
     buttonGroups.add(buttons1);
@@ -232,19 +233,19 @@ public class SwimSidePanel extends JPanel implements ChangeListener, ActionListe
       }
     });
 
-    saveButton.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        controller.saveTest();
-      }
-    });
-
-    loadButton.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        controller.loadTest();
-      }
-    });
+//    saveButton.addActionListener(new ActionListener() {
+//      @Override
+//      public void actionPerformed(ActionEvent e) {
+//        controller.saveTest();
+//      }
+//    });
+//
+//    loadButton.addActionListener(new ActionListener() {
+//      @Override
+//      public void actionPerformed(ActionEvent e) {
+//        controller.loadTest();
+//      }
+//    });
   }
 
   private void addSettings(JPanel argPanel, SwimSettings argSettings, SettingType argIgnore) {

@@ -30,6 +30,8 @@ import javax.swing.DefaultComboBoxModel;
 import org.jbox2d.callbacks.DebugDraw;
 import org.jbox2d.common.Vec2;
 
+import ubc.swim.tests.SwimTest;
+
 /**
  * GUI model for Swimmer App. Modeled on org.jbox2d.testbed.framework.TestbedModel by Daniel Murphy
  * @author Ben Humberston

@@ -24,7 +24,7 @@
 /**
  * Created at 2:21:03 PM Jul 17, 2010
  */
-package ubc.swim.gui;
+package ubc.swim.tests;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -59,25 +59,19 @@ import org.jbox2d.dynamics.contacts.Contact;
 import org.jbox2d.dynamics.joints.Joint;
 import org.jbox2d.dynamics.joints.MouseJoint;
 import org.jbox2d.dynamics.joints.MouseJointDef;
-import org.jbox2d.serialization.JbDeserializer;
-import org.jbox2d.serialization.JbSerializer;
-import org.jbox2d.serialization.SerializationResult;
-import org.jbox2d.serialization.UnsupportedListener;
-import org.jbox2d.serialization.UnsupportedObjectException;
-import org.jbox2d.serialization.JbDeserializer.ObjectListener;
-import org.jbox2d.serialization.JbSerializer.ObjectSigner;
-import org.jbox2d.serialization.pb.PbDeserializer;
-import org.jbox2d.serialization.pb.PbSerializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import ubc.swim.gui.ContactPoint;
+import ubc.swim.gui.SwimModel;
+import ubc.swim.gui.SwimSettings;
 
 /**
  * A single test world for the swimmer app; modeled on org.jbox2d.testbed.framework.TestbedTest by Daniel Murphy
  * 
  * @author Ben Humberston
  */
-public abstract class SwimTest implements ContactListener, ObjectListener,
-		ObjectSigner, UnsupportedListener {
+public abstract class SwimTest implements ContactListener {
 	public static final int MAX_CONTACT_POINTS = 2048;
 
 	protected static final long GROUND_BODY_TAG = 1897450239847L;
@@ -122,65 +116,13 @@ public abstract class SwimTest implements ContactListener, ObjectListener,
 	private float cachedCameraScale;
 	private final Vec2 cachedCameraPos = new Vec2();
 	private boolean hasCachedCamera = false;
-
-	private JbSerializer serializer;
-	private JbDeserializer deserializer;
-
+	
 	private boolean dialogOnSaveLoadErrors = true;
 
-	private boolean savePending, loadPending, resetPending = false;
+	private boolean resetPending = false;
 
 	public SwimTest() {
 		inputQueue = new LinkedList<QueueItem>();
-		serializer = new PbSerializer(this, new SignerAdapter(this) {
-			@Override
-			public Long getTag(Body argBody) {
-				if (isSaveLoadEnabled()) {
-					if (argBody == groundBody) {
-						return GROUND_BODY_TAG;
-					} else if (argBody == bomb) {
-						return BOMB_TAG;
-					}
-				}
-				return super.getTag(argBody);
-			}
-
-			@Override
-			public Long getTag(Joint argJoint) {
-				if (isSaveLoadEnabled()) {
-					if (argJoint == mouseJoint) {
-						return MOUSE_JOINT_TAG;
-					}
-				}
-				return super.getTag(argJoint);
-			}
-		});
-		deserializer = new PbDeserializer(this, new ListenerAdapter(this) {
-			@Override
-			public void processBody(Body argBody, Long argTag) {
-				if (isSaveLoadEnabled()) {
-					if (argTag == GROUND_BODY_TAG) {
-						groundBody = argBody;
-						return;
-					} else if (argTag == BOMB_TAG) {
-						bomb = argBody;
-						return;
-					}
-				}
-				super.processBody(argBody, argTag);
-			}
-
-			@Override
-			public void processJoint(Joint argJoint, Long argTag) {
-				if (isSaveLoadEnabled()) {
-					if (argTag == MOUSE_JOINT_TAG) {
-						mouseJoint = (MouseJoint) argJoint;
-						return;
-					}
-				}
-				super.processJoint(argJoint, argTag);
-			}
-		});
 	}
 
 	public void init(SwimModel argModel) {
@@ -372,99 +314,8 @@ public abstract class SwimTest implements ContactListener, ObjectListener,
 		resetPending = true;
 	}
 
-	/**
-	 * Saves the test
-	 */
-	public void save() {
-		savePending = true;
-	}
-
-	/**
-	 * Loads the test from file
-	 */
-	public void load() {
-		loadPending = true;
-	}
-
 	protected void _reset() {
 		init(model);
-	}
-
-	protected void _save() {
-
-		SerializationResult result;
-		try {
-			result = serializer.serialize(m_world);
-		} catch (UnsupportedObjectException e1) {
-			log.error("Error serializing world", e1);
-			if (dialogOnSaveLoadErrors) {
-				JOptionPane.showConfirmDialog(null,
-						"Error serializing the object: " + e1.toString(),
-						"Serialization Error", JOptionPane.OK_OPTION);
-			}
-			return;
-		}
-
-		try {
-			FileOutputStream fos = new FileOutputStream(getFilename());
-			result.writeTo(fos);
-		} catch (FileNotFoundException e) {
-			log.error("File not found exception while saving", e);
-			if (dialogOnSaveLoadErrors) {
-				JOptionPane.showConfirmDialog(null,
-						"File not found exception while saving: "
-								+ getFilename(), "Serialization Error",
-						JOptionPane.OK_OPTION);
-			}
-			return;
-		} catch (IOException e) {
-			log.error("Exception while writing world", e);
-			if (dialogOnSaveLoadErrors) {
-				JOptionPane.showConfirmDialog(null,
-						"Error while writing world: " + e.toString(),
-						"Serialization Error", JOptionPane.OK_OPTION);
-			}
-			return;
-		}
-		return;
-	}
-
-	protected void _load() {
-
-		World w;
-		try {
-			FileInputStream fis = new FileInputStream(getFilename());
-			w = deserializer.deserializeWorld(fis);
-		} catch (FileNotFoundException e) {
-			log.error("File not found error while loading", e);
-			if (dialogOnSaveLoadErrors) {
-				JOptionPane.showMessageDialog(null,
-						"File not found exception while loading: "
-								+ getFilename(), "Serialization Error",
-						JOptionPane.ERROR_MESSAGE);
-			}
-			return;
-		} catch (UnsupportedObjectException e) {
-			log.error("Error deserializing world", e);
-			if (dialogOnSaveLoadErrors) {
-				JOptionPane.showMessageDialog(null,
-						"Error serializing the object: " + e.toString(),
-						"Serialization Error", JOptionPane.ERROR_MESSAGE);
-			}
-			return;
-		} catch (IOException e) {
-			log.error("Exception while writing world", e);
-			if (dialogOnSaveLoadErrors) {
-				JOptionPane.showMessageDialog(null,
-						"Error while reading world: " + e.toString(),
-						"Serialization Error", JOptionPane.ERROR_MESSAGE);
-			}
-			return;
-		}
-		m_world = w;
-
-		init(m_world, true);
-		return;
 	}
 
 	/**
@@ -506,14 +357,6 @@ public abstract class SwimTest implements ContactListener, ObjectListener,
 		if (resetPending) {
 			_reset();
 			resetPending = false;
-		}
-		if (savePending) {
-			_save();
-			savePending = false;
-		}
-		if (loadPending) {
-			_load();
-			loadPending = false;
 		}
 
 		m_textLine = 30;
@@ -909,56 +752,6 @@ public abstract class SwimTest implements ContactListener, ObjectListener,
 		return false;
 	}
 
-	@Override
-	public Long getTag(Body argBody) {
-		return null;
-	}
-
-	@Override
-	public Long getTag(Fixture argFixture) {
-		return null;
-	}
-
-	@Override
-	public Long getTag(Joint argJoint) {
-		return null;
-	}
-
-	@Override
-	public Long getTag(Shape argShape) {
-		return null;
-	}
-
-	@Override
-	public Long getTag(World argWorld) {
-		return null;
-	}
-
-	@Override
-	public void processBody(Body argBody, Long argTag) {
-	}
-
-	@Override
-	public void processFixture(Fixture argFixture, Long argTag) {
-	}
-
-	@Override
-	public void processJoint(Joint argJoint, Long argTag) {
-	}
-
-	@Override
-	public void processShape(Shape argShape, Long argTag) {
-	}
-
-	@Override
-	public void processWorld(World argWorld, Long argTag) {
-	}
-
-	@Override
-	public boolean isUnsupported(UnsupportedObjectException argException) {
-		return true;
-	}
-
 	public void jointDestroyed(Joint joint) {
 	}
 
@@ -1055,61 +848,5 @@ class QueueItem {
 		type = t;
 		c = cr;
 		code = cd;
-	}
-}
-
-class SignerAdapter implements ObjectSigner {
-	private final ObjectSigner delegate;
-
-	public SignerAdapter(ObjectSigner argDelegate) {
-		delegate = argDelegate;
-	}
-
-	public Long getTag(World argWorld) {
-		return delegate.getTag(argWorld);
-	}
-
-	public Long getTag(Body argBody) {
-		return delegate.getTag(argBody);
-	}
-
-	public Long getTag(Shape argShape) {
-		return delegate.getTag(argShape);
-	}
-
-	public Long getTag(Fixture argFixture) {
-		return delegate.getTag(argFixture);
-	}
-
-	public Long getTag(Joint argJoint) {
-		return delegate.getTag(argJoint);
-	}
-}
-
-class ListenerAdapter implements ObjectListener {
-	private final ObjectListener listener;
-
-	public ListenerAdapter(ObjectListener argListener) {
-		listener = argListener;
-	}
-
-	public void processWorld(World argWorld, Long argTag) {
-		listener.processWorld(argWorld, argTag);
-	}
-
-	public void processBody(Body argBody, Long argTag) {
-		listener.processBody(argBody, argTag);
-	}
-
-	public void processFixture(Fixture argFixture, Long argTag) {
-		listener.processFixture(argFixture, argTag);
-	}
-
-	public void processShape(Shape argShape, Long argTag) {
-		listener.processShape(argShape, argTag);
-	}
-
-	public void processJoint(Joint argJoint, Long argTag) {
-		listener.processJoint(argJoint, argTag);
 	}
 }
