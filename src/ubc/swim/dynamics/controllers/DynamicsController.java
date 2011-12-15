@@ -33,7 +33,7 @@ public class DynamicsController {
 	public void step(SwimSettings settings) {;}
 
 	/** Controllers override this to provide debug drawing. */
-	public void draw(DebugDraw debugDraw) {;}
+	public void draw(DebugDraw debugDraw, SwimSettings settings) {;}
 
 	/** Adds a body to the controller list. */
 	public void addBody(Body body) {

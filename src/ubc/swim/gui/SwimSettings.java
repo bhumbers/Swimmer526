@@ -56,6 +56,8 @@ public class SwimSettings {
   public static final String DrawHelp = "Draw Help";
   public static final String DrawTree = "Draw Dynamic Tree";
   
+  public static final String DrawDragForces = "Draw Drag Forces";
+  
   public static final String FluidDensity = "Fluid Density";
   public static final String FluidDrag = "Fluid Drag";
   public static final String FluidVelocity = "Fluid Speed (horizontal)";
@@ -88,6 +90,8 @@ public class SwimSettings {
     addSetting(new SwimSetting(DrawStats, SettingType.DRAWING, true));
     addSetting(new SwimSetting(DrawHelp, SettingType.DRAWING, false));
     addSetting(new SwimSetting(DrawTree, SettingType.DRAWING, false));
+    
+    addSetting(new SwimSetting(DrawDragForces, SettingType.DRAWING, true));
     
     addSetting(new SwimSetting(FluidDensity, SettingType.ENGINE, 3, 0, 20, 100));
     addSetting(new SwimSetting(FluidDrag, SettingType.ENGINE, 5, 0, 100, 400));

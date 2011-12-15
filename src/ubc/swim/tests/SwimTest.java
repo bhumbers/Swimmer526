@@ -576,7 +576,7 @@ public abstract class SwimTest implements ContactListener {
 		
 		//Draw controller debug info
 		for (DynamicsController controller : dynControllers) {
-			controller.draw(model.getDebugDraw());
+			controller.draw(model.getDebugDraw(), settings);
 		}
 	}
 

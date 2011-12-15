@@ -192,7 +192,9 @@ public class BuoyancyController extends DynamicsController {
 	}
 	
 	@Override
-	public void draw(DebugDraw debugDraw) {
+	public void draw(DebugDraw debugDraw, SwimSettings settings) {
+		boolean drawDragForces = settings.getSetting(SwimSettings.DrawDragForces).enabled;
+		
 		float r = 1000;
 		Vec2 p1 = normal.mul(fluidSurfaceOffset).addLocal(Vec2.cross(normal, r));
 		Vec2 p2 = normal.mul(fluidSurfaceOffset).subLocal(Vec2.cross(normal, r));
@@ -208,8 +210,10 @@ public class BuoyancyController extends DynamicsController {
 		for (Edge subEdge : subEdges)
 			debugDraw.drawSegment(subEdge.pA, subEdge.pB, new Color3f(1,0,0));
 		
-		//DEBUG: Draw drag forces
-		for (Edge dragForce : dragForces)
-			debugDraw.drawSegment(dragForce.pA, dragForce.pB, new Color3f(1,1,0));
+		if (drawDragForces) {
+			//DEBUG: Draw drag forces
+			for (Edge dragForce : dragForces)
+				debugDraw.drawSegment(dragForce.pA, dragForce.pB, new Color3f(1,1,0));
+		}
 	}
 }
