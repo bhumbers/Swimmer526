@@ -64,6 +64,8 @@ public class BuoyancyController extends DynamicsController {
 		//Update world from given settings
 		density = (float)settings.getSetting(SwimSettings.FluidDensity).value;
 		linearDrag = (float)settings.getSetting(SwimSettings.FluidDrag).value;
+		//TODO: what's a good way to scale angular drag? -bh, 12.14.2011
+		angularDrag = linearDrag;
 		
 		boolean densityChanged = oldDensity != density;
 		
@@ -72,22 +74,25 @@ public class BuoyancyController extends DynamicsController {
 			gravity = world.getGravity();
 		}
 		for (Body body : bodies) {
-			if(densityChanged == false && body.isAwake() == false) {
-				//Buoyancy force is just a function of position,
-				//so unlike most forces, it is safe to ignore sleeping bodes
+			
+			//If density is unchanged and body is at long term rest (sleeping),
+			//we can safely ignore it since buoyancy as a force is constant if position is unchanging
+			if(densityChanged == false && body.isAwake() == false)
 				continue;
-			}
-			Vec2 areac = new Vec2(0,0);
-			Vec2 massc = new Vec2(0,0);
-			float area = 0;
-			float mass = 0;
+			
+			//NOTE: "sub" prefix indicates the submerged portion/version of a given quantity
+			
+			Vec2 subCenter = new Vec2(0,0);
+			Vec2 subCenterOfMass = new Vec2(0,0);
+			float subArea = 0;
+			float subMass = 0;
 			for (Fixture fixture = body.getFixtureList(); fixture != null; fixture = fixture.getNext()) {
 				Shape shape = fixture.getShape();
-				Vec2 sc = new Vec2(0,0);
-				float sarea = BuoyancyUtil.computeSubmergedArea(shape, normal, offset, fixture.getBody().getTransform(), sc);
-				area += sarea;
-				areac.x += sarea * sc.x;
-				areac.y += sarea * sc.y;
+				Vec2 subCenterOfShape = new Vec2(0,0);
+				float subAreaOfShape = BuoyancyUtil.computeSubmergedArea(shape, normal, offset, fixture.getBody().getTransform(), subCenterOfShape);
+				subArea += subAreaOfShape;
+				subCenter.x += subAreaOfShape * subCenterOfShape.x;
+				subCenter.y += subAreaOfShape * subCenterOfShape.y;
 				
 				float shapeDensity = 0;
 				if(useDensity)
@@ -95,26 +100,34 @@ public class BuoyancyController extends DynamicsController {
 				else
 					shapeDensity = 1;
 				
-				mass += sarea*shapeDensity;
-				massc.x += sarea * sc.x * shapeDensity;
-				massc.y += sarea * sc.y * shapeDensity;
+				subMass += subAreaOfShape*shapeDensity;
+				subCenterOfMass.x += subAreaOfShape * subCenterOfShape.x * shapeDensity;
+				subCenterOfMass.y += subAreaOfShape * subCenterOfShape.y * shapeDensity;
 			}
-			areac.x/=area;
-			areac.y/=area;
-			//Vec2 localCentroid = XForm.mulTrans(body.getXForm(),areac);
-			massc.x/=mass;
-			massc.y/=mass;
-			if(area<Settings.EPSILON) continue;
+			
+			subCenter.x/=subArea;
+			subCenter.y/=subArea;
+			
+			subCenterOfMass.x/=subMass;
+			subCenterOfMass.y/=subMass;
+			
+			//Ignore if total submerged area is small
+			if(subArea<Settings.EPSILON) 
+				continue;
+			
 			//Buoyancy
-			Vec2 buoyancyForce = gravity.mul(-density*area);
-			body.applyForce(buoyancyForce,massc);
+			Vec2 buoyancyForce = gravity.mul(-density*subArea);
+			body.applyForce(buoyancyForce,subCenterOfMass);
+			
 			//Linear drag
-			Vec2 dragForce = body.getLinearVelocityFromWorldPoint(areac).sub(velocity);
-			dragForce.mulLocal(-linearDrag*area);
-			body.applyForce(dragForce,areac);
+			//TODO: better drag. -bh, 12.14.2011
+			Vec2 dragForce = body.getLinearVelocityFromWorldPoint(subCenter).sub(velocity);
+			dragForce.mulLocal(-linearDrag*subArea);
+			body.applyForce(dragForce,subCenter);
+			
 			//Angular drag
 			//TODO: Something that makes more physical sense?
-			body.applyTorque(-body.getInertia()/body.getMass()*area*body.getAngularVelocity()*angularDrag);
+			body.applyTorque(-body.getInertia()/body.getMass()*subArea*body.getAngularVelocity()*angularDrag);
 			
 		}
 	}

@@ -30,7 +30,9 @@ public class BuoyancyUtil {
 	private static final TLVec2 tlCenter = new TLVec2();
 
 	/**
-	 * Compute the volume and centroid of given shape, intersected with fluid half-plane 
+	 * Computes the volume and cetroid of part of shape that intersects with fluid half-plane 
+	 * whose top edge is at given y offset
+	 * 
 	 * BH, 12.14.2011: Only works for PolygonShape objects at the moment
 	 *  
 	 * Adapted from
@@ -41,11 +43,11 @@ public class BuoyancyUtil {
 	 *            the surface normal
 	 * @param offset
 	 *            the surface offset along normal
-	 * @param c
-	 *            the computed centroid of the submerged area
+	 * @param outputSubmergedCenter
+	 *            set to be the centerpoint of the submerged part of the given shape
 	 * @return the total volume less than offset along normal
 	 */
-	public static float computeSubmergedArea(Shape shape, Vec2 normal, float offset, Transform transform, Vec2 c) {
+	public static float computeSubmergedArea(Shape shape, Vec2 normal, float offset, Transform transform, Vec2 outputSubmergedCenter) {
 		float area = 0;
 		
 		//Currently, only implemented for polygons
@@ -86,16 +88,20 @@ public class BuoyancyUtil {
 			}
 	
 			switch (diveCount) {
+			//If no edge crossed the water line...
 			case 0:
+				//if all vertices were underwater, then all mass is submerged
 				if (lastSubmerged) {
-					// Completely submerged
+					//note: assuming density = 1.0f means mass == area; we want to find the latter, so make that assumption
 					pshape.computeMass(md, 1.0f);
-					Transform.mulToOut(transform, md.center, c);
-					return md.mass;
-				} else {
+					Transform.mulToOut(transform, md.center, outputSubmergedCenter);
+					return md.mass; //ie: area, since mass == area with 1.0 density
+				} 
+				//Otherwise, no mass is submerged
+				else {
 					return 0;
 				}
-	
+			//If only one edge crossed the water line...
 			case 1:
 				if (intoIndex == -1) {
 					intoIndex = pshape.m_vertexCount - 1;
@@ -169,7 +175,7 @@ public class BuoyancyUtil {
 			center.x *= 1.0f / area;
 			center.y *= 1.0f / area;
 	
-			Transform.mulToOut(transform, center, c);
+			Transform.mulToOut(transform, center, outputSubmergedCenter);
 		}
 
 		return area;
