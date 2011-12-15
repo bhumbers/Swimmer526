@@ -73,9 +73,9 @@ public class SwimSettings {
   }
 
   private void populateDefaultSettings() {
-    addSetting(new SwimSetting(Hz, SettingType.ENGINE, 60, 1, 400, 1));
-    addSetting(new SwimSetting(PositionIterations, SettingType.ENGINE, 3, 0, 100, 1));
-    addSetting(new SwimSetting(VelocityIterations, SettingType.ENGINE, 8, 1, 100, 1));
+    addSetting(new SwimSetting(Hz, SettingType.ENGINE, 60, 1, 400));
+    addSetting(new SwimSetting(PositionIterations, SettingType.ENGINE, 3, 0, 100));
+    addSetting(new SwimSetting(VelocityIterations, SettingType.ENGINE, 8, 1, 100));
     addSetting(new SwimSetting(WarmStarting, SettingType.ENGINE, true));
     addSetting(new SwimSetting(ContinuousCollision, SettingType.ENGINE, true));
     addSetting(new SwimSetting(DrawShapes, SettingType.DRAWING, true));

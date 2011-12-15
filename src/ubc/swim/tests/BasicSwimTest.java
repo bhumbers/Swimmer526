@@ -26,16 +26,11 @@
  */
 package ubc.swim.tests;
 
-import java.util.Formatter;
-
 import org.jbox2d.collision.shapes.PolygonShape;
-import org.jbox2d.common.MathUtils;
 import org.jbox2d.common.Vec2;
 import org.jbox2d.dynamics.Body;
 import org.jbox2d.dynamics.BodyDef;
 import org.jbox2d.dynamics.BodyType;
-import org.jbox2d.dynamics.joints.PrismaticJoint;
-import org.jbox2d.dynamics.joints.PrismaticJointDef;
 import org.jbox2d.dynamics.joints.RevoluteJoint;
 import org.jbox2d.dynamics.joints.RevoluteJointDef;
 
@@ -53,7 +48,6 @@ import ubc.swim.gui.SwimSettings;
 public class BasicSwimTest extends SwimTest {
 	
 	private RevoluteJoint m_joint1;
-	private PrismaticJoint m_joint2;
 	
 	@Override
 	public void initTest(boolean deserialized) {
@@ -136,17 +130,17 @@ public class BasicSwimTest extends SwimTest {
 //				m_joint2 = (PrismaticJoint)getWorld().createJoint(pjd);
 //			}
 
-			// Create a payload
-			{
-				PolygonShape shape = new PolygonShape();
-				shape.setAsBox(1.5f, 1.5f);
-
-				BodyDef bd = new BodyDef();
-				bd.type = BodyType.DYNAMIC;
-				bd.position.set(0.0f, 23.0f);
-				Body body = getWorld().createBody(bd);
-				body.createFixture(shape, 2.0f);
-			}
+//			// Create a payload
+//			{
+//				PolygonShape shape = new PolygonShape();
+//				shape.setAsBox(1.5f, 1.5f);
+//
+//				BodyDef bd = new BodyDef();
+//				bd.type = BodyType.DYNAMIC;
+//				bd.position.set(0.0f, 23.0f);
+//				Body body = getWorld().createBody(bd);
+//				body.createFixture(shape, 2.0f);
+//			}
 			
 			float boatLength = 6.0f;
 			float boatWidth = 0.5f;
@@ -194,7 +188,6 @@ public class BasicSwimTest extends SwimTest {
 		fluidDef.density = 5.0f;
 		fluidDef.offset = fluidHeight;
 		fluidDef.linearDrag = 100.0f;
-		fluidDef.angularDrag = 100.0f;
 		DynamicsController fluid = fluidDef.create();
 		fluid.world = world;
 		for (Body body = getWorld().getBodyList(); body != null; body = body.getNext()) {
@@ -206,13 +199,6 @@ public class BasicSwimTest extends SwimTest {
 	@Override
 	public void step(SwimSettings settings) {
 		super.step(settings);
-		
-		if (m_joint1 != null) {
-			addTextLine("Keys: (f) toggle friction, (m) toggle motor");
-			float torque = m_joint1.getMotorTorque();
-			Formatter f = new Formatter();
-			addTextLine(f.format("Friction: %b, Motor Force = %5.0f, ", m_joint2.isMotorEnabled(), torque).toString());
-		}
 
 	}
 
@@ -220,10 +206,6 @@ public class BasicSwimTest extends SwimTest {
 	public void keyPressed(char argKeyChar, int argKeyCode) {
 		
 		switch(argKeyChar){
-			case 'f':
-				m_joint2.enableMotor(!m_joint2.isMotorEnabled());
-				getModel().getKeys()['f'] = false;
-				break;
 			case 'm':
 				m_joint1.enableMotor(!m_joint1.isMotorEnabled());
 				getModel().getKeys()['m'] = false;

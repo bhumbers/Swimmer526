@@ -24,8 +24,6 @@ public class BuoyancyControllerDef extends DynamicsControllerDef {
 	public Vec2 velocity;
 	/// Linear drag co-efficient
 	public float linearDrag;
-	/// Linear drag co-efficient
-	public float angularDrag;
 	/// If false, bodies are assumed to be uniformly dense, otherwise use the shapes densities
 	public boolean useDensity; //False by default to prevent a gotcha
 	/// If true, gravity is taken from the world instead of the gravity parameter.
@@ -39,7 +37,6 @@ public class BuoyancyControllerDef extends DynamicsControllerDef {
 		density = 0;
 		velocity = new Vec2(0,0);
 		linearDrag = 0;
-		angularDrag = 0;
 		useDensity = false;
 		useWorldGravity = true;
 		gravity = new Vec2(0,0);

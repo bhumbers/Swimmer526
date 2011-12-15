@@ -138,6 +138,8 @@ public abstract class SwimTest implements ContactListener {
 				}
 			}
 		};
+		
+		dynControllers.clear();
 
 		Vec2 gravity = new Vec2(0, -10f);
 		world = new World(gravity, true);

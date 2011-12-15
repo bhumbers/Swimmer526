@@ -53,7 +53,7 @@ public class PaddleTest extends SwimTest {
 	@Override
 	public void initTest(boolean deserialized) {
 		float fluidHeight = 10.0f;
-		float pivotHeight = 3.0f;
+		float pivotHeight = 10.0f;
 		
 		//Create fixed pivot point
 		Body pivot = null;
@@ -88,7 +88,6 @@ public class PaddleTest extends SwimTest {
 		fluidDef.density = 5.0f;
 		fluidDef.offset = fluidHeight;
 		fluidDef.linearDrag = 100.0f;
-		fluidDef.angularDrag = 100.0f;
 		DynamicsController fluid = fluidDef.create();
 		fluid.world = world;
 		for (Body body = getWorld().getBodyList(); body != null; body = body.getNext()) {

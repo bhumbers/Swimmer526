@@ -62,7 +62,28 @@ public class SwimSetting {
 		min = max = value = 0;
 		sliderStops = 2;
 	}
+	
+	/**
+	 * Creates a numeric range setting that will use default number of slider stops
+	 * @param name
+	 * @param type
+	 * @param val
+	 * @param min
+	 * @param max
+	 */
+	public SwimSetting(String name, SettingType type, double val, double min, double max) {
+		this(name, type, val, min, max, (int)(max - min));
+	}
 
+	/**
+	 * Creates a numeric range setting that will use given number of slider stops
+	 * @param name
+	 * @param type
+	 * @param val
+	 * @param min
+	 * @param max
+	 * @param sliderStops
+	 */
 	public SwimSetting(String name, SettingType type, double val, double min, double max, int sliderStops) {
 		this.name = name;
 		this.settingsType = type;

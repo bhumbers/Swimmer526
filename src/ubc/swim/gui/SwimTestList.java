@@ -27,6 +27,7 @@
 package ubc.swim.gui;
 
 import ubc.swim.tests.BasicSwimTest;
+import ubc.swim.tests.PaddleTest;
 
 
 /**
@@ -39,7 +40,8 @@ public class SwimTestList {
   
   public static void populateModel(SwimModel argModel){
       
-      argModel.addCategory("Featured");
+      argModel.addCategory("Basic");
+      argModel.addTest(new PaddleTest());
       argModel.addTest(new BasicSwimTest());
   }
 }
