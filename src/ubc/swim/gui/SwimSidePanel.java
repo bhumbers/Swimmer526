@@ -67,7 +67,7 @@ public class SwimSidePanel extends JPanel implements ChangeListener, ActionListe
   final SwimModel model;
   final SwimController controller;
 
-  public JComboBox tests;
+  public JComboBox<ListItem> tests;
 
   private JButton pauseButton = new JButton("Pause");
   private JButton stepButton = new JButton("Step");
@@ -103,16 +103,16 @@ public class SwimSidePanel extends JPanel implements ChangeListener, ActionListe
     top.setLayout(new GridLayout(0, 1));
     top.setBorder(BorderFactory.createCompoundBorder(new EtchedBorder(EtchedBorder.LOWERED),
         BorderFactory.createEmptyBorder(10, 10, 10, 10)));
-    tests = new JComboBox(model.getComboModel());
+    tests = new JComboBox<ListItem>(model.getComboModel());
     tests.setMaximumRowCount(30);
     tests.setMaximumSize(new Dimension(250, 20));
     tests.addActionListener(this);
-    tests.setRenderer(new ListCellRenderer() {
+    tests.setRenderer(new ListCellRenderer<Object>() {
       JLabel categoryLabel = null;
       JLabel testLabel = null;
 
       @Override
-      public Component getListCellRendererComponent(JList list, Object value, int index,
+      public Component getListCellRendererComponent(JList<?> list, Object value, int index,
           boolean isSelected, boolean cellHasFocus) {
         ListItem item = (ListItem) value;
 
@@ -256,7 +256,7 @@ public class SwimSidePanel extends JPanel implements ChangeListener, ActionListe
       switch (setting.constraintType) {
         case RANGE:
           JLabel text = new JLabel(setting.name + ": " + setting.value);
-          JSlider slider = new JSlider(setting.min, setting.max, setting.value);
+          JSlider slider = new JSliderDouble((int)setting.min, (int)setting.max, (int)setting.value, (int)setting.sliderStops);
           slider.setMaximumSize(new Dimension(200, 20));
           slider.addChangeListener(this);
           slider.setName(setting.name);
@@ -286,8 +286,8 @@ public class SwimSidePanel extends JPanel implements ChangeListener, ActionListe
         setting.enabled = box.isSelected();
         break;
       case RANGE:
-        JSlider slider = (JSlider) e.getSource();
-        setting.value = slider.getValue();
+    	JSliderDouble slider = (JSliderDouble) e.getSource();
+    	setting.value = slider.getScaledValue();
         JLabel label = (JLabel) slider.getClientProperty(LABEL_TAG);
         label.setText(setting.name + ": " + setting.value);
         break;

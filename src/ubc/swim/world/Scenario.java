@@ -21,7 +21,7 @@ public class Scenario {
 	/** 
 	 * Constructor
 	 */
-	public void Scenario() {
+	public Scenario() {
 		chars = new ArrayList<Character>();
 	}
 }

@@ -22,7 +22,7 @@ public class Character {
 	/**
 	 * Constructor
 	 */
-	public void Character() {
+	public Character() {
 		segments = new ArrayList<Segment>();
 		muscles = new ArrayList<Muscle>();
 	}

@@ -39,6 +39,8 @@ import org.jbox2d.dynamics.joints.PrismaticJointDef;
 import org.jbox2d.dynamics.joints.RevoluteJoint;
 import org.jbox2d.dynamics.joints.RevoluteJointDef;
 
+import ubc.swim.dynamics.controllers.BuoyancyControllerDef;
+import ubc.swim.dynamics.controllers.DynamicsController;
 import ubc.swim.gui.SwimSettings;
 
 /**
@@ -144,6 +146,19 @@ public class BasicSwimTest extends SwimTest {
 				body.createFixture(shape, 2.0f);
 			}
 		}
+		
+		//Create fluid environment
+		BuoyancyControllerDef fluidDef = new BuoyancyControllerDef();
+		fluidDef.density = 5.0f;
+		fluidDef.offset = 10;
+		fluidDef.linearDrag = 100.0f;
+		fluidDef.angularDrag = 100.0f;
+		DynamicsController fluid = fluidDef.create();
+		fluid.world = world;
+		for (Body body = getWorld().getBodyList(); body != null; body = body.getNext()) {
+			fluid.addBody(body);
+		}
+		addController(fluid);
 	}
 	
 	@Override

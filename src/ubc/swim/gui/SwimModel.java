@@ -39,7 +39,7 @@ import ubc.swim.tests.SwimTest;
  */
 public class SwimModel {
 
-  private final DefaultComboBoxModel tests = new DefaultComboBoxModel();
+  private final DefaultComboBoxModel<ListItem> tests = new DefaultComboBoxModel<ListItem>();
   private final SwimSettings settings = new SwimSettings();
   private DebugDraw draw;
   private SwimTest test;
@@ -168,7 +168,7 @@ public class SwimModel {
     return tests.getSize();
   }
 
-  public DefaultComboBoxModel getComboModel() {
+  public DefaultComboBoxModel<ListItem> getComboModel() {
     return tests;
   }
 

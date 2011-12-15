@@ -24,50 +24,61 @@
 package ubc.swim.gui;
 
 /**
- * Defines a single setting used by swimmer GUI
- * Modeled on org.jbox2d.testbed.framework.TestbedSetting by Daniel Murphy
+ * Defines a single setting used by swimmer GUI Modeled on
+ * org.jbox2d.testbed.framework.TestbedSetting by Daniel Murphy
  */
 public class SwimSetting {
-  
-  /**
-   * Whether the setting effects the engine's behavior or
-   * modifies drawing.
-   *
-   */
-  public static enum SettingType {
-    DRAWING, ENGINE
-  }
-  
-  /**
-   * The type of value this setting pertains to
-   */
-  public static enum ConstraintType {
-    BOOLEAN, RANGE
-  }
-  
-  public final String name;
-  public final SettingType settingsType;
-  public final ConstraintType constraintType;
-  public boolean enabled;
-  public int value;
-  public final int min;
-  public final int max;
-  
-  public SwimSetting(String argName, SettingType argType, boolean argValue){
-    name = argName;
-    settingsType = argType;
-    enabled = argValue;
-    constraintType = ConstraintType.BOOLEAN;
-    min = max = value = 0;
-  }
-  
-  public SwimSetting(String argName, SettingType argType, int argValue, int argMinimum, int argMaximum){
-    name = argName;
-    settingsType = argType;
-    value = argValue;
-    min = argMinimum;
-    max = argMaximum;
-    constraintType = ConstraintType.RANGE;
-    enabled = false;
-  }
+
+	/**
+	 * Whether the setting effects the engine's behavior or modifies drawing.
+	 * 
+	 */
+	public static enum SettingType {
+		DRAWING, ENGINE
+	}
+
+	/**
+	 * The type of value this setting pertains to
+	 */
+	public static enum ConstraintType {
+		BOOLEAN, RANGE
+	}
+
+	public final String name;
+	public final SettingType settingsType;
+	public final ConstraintType constraintType;
+	public boolean enabled;
+	public double value;
+	public final double min;
+	public final double max;
+	
+	public final int sliderStops; // used to set # of notches on UI slider for floating point settings
+
+	public SwimSetting(String name, SettingType type, boolean enabled) {
+		this.name = name;
+		this.settingsType = type;
+		this.enabled = enabled;
+		constraintType = ConstraintType.BOOLEAN;
+		min = max = value = 0;
+		sliderStops = 2;
+	}
+
+	public SwimSetting(String name, SettingType type, double val, double min, double max, int sliderStops) {
+		this.name = name;
+		this.settingsType = type;
+		this.value = val;
+		this.min = min;
+		this.max = max;
+		this.sliderStops = sliderStops;
+		constraintType = ConstraintType.RANGE;
+		enabled = false;
+	}
+
+	/**
+	 * Returns value in integer precision
+	 * 
+	 * @return
+	 */
+	public int getIntValue() { return (int) value;
+	}
 }

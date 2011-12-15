@@ -7,4 +7,13 @@ package ubc.swim.world;
  */
 public class Segment {
 
+	/**
+	 * Physical density of this segment
+	 */
+	protected float density;
+	
+	
+	public Segment() {
+		
+	}
 }

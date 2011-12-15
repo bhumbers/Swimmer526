@@ -55,6 +55,9 @@ public class SwimSettings {
   public static final String DrawStats = "Draw Stats";
   public static final String DrawHelp = "Draw Help";
   public static final String DrawTree = "Draw Dynamic Tree";
+  
+  public static final String FluidDensity = "Fluid Density";
+  public static final String FluidDrag = "Fluid Drag";
 
   public boolean pause = false;
   public boolean singleStep = false;
@@ -69,9 +72,9 @@ public class SwimSettings {
   }
 
   private void populateDefaultSettings() {
-    addSetting(new SwimSetting(Hz, SettingType.ENGINE, 60, 1, 400));
-    addSetting(new SwimSetting(PositionIterations, SettingType.ENGINE, 3, 0, 100));
-    addSetting(new SwimSetting(VelocityIterations, SettingType.ENGINE, 8, 1, 100));
+    addSetting(new SwimSetting(Hz, SettingType.ENGINE, 60, 1, 400, 1));
+    addSetting(new SwimSetting(PositionIterations, SettingType.ENGINE, 3, 0, 100, 1));
+    addSetting(new SwimSetting(VelocityIterations, SettingType.ENGINE, 8, 1, 100, 1));
     addSetting(new SwimSetting(WarmStarting, SettingType.ENGINE, true));
     addSetting(new SwimSetting(ContinuousCollision, SettingType.ENGINE, true));
     addSetting(new SwimSetting(DrawShapes, SettingType.DRAWING, true));
@@ -84,6 +87,9 @@ public class SwimSettings {
     addSetting(new SwimSetting(DrawStats, SettingType.DRAWING, true));
     addSetting(new SwimSetting(DrawHelp, SettingType.DRAWING, false));
     addSetting(new SwimSetting(DrawTree, SettingType.DRAWING, false));
+    
+    addSetting(new SwimSetting(FluidDensity, SettingType.ENGINE, 3, 0, 20, 100));
+    addSetting(new SwimSetting(FluidDrag, SettingType.ENGINE, 5, 0, 100, 400));
   }
 
   /**

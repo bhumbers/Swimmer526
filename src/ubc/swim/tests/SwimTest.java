@@ -26,13 +26,8 @@
  */
 package ubc.swim.tests;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.util.ArrayList;
 import java.util.LinkedList;
-
-import javax.swing.JOptionPane;
 
 import org.jbox2d.callbacks.ContactImpulse;
 import org.jbox2d.callbacks.ContactListener;
@@ -45,7 +40,6 @@ import org.jbox2d.collision.Collision.PointState;
 import org.jbox2d.collision.Manifold;
 import org.jbox2d.collision.WorldManifold;
 import org.jbox2d.collision.shapes.CircleShape;
-import org.jbox2d.collision.shapes.Shape;
 import org.jbox2d.common.Color3f;
 import org.jbox2d.common.Settings;
 import org.jbox2d.common.Vec2;
@@ -59,9 +53,8 @@ import org.jbox2d.dynamics.contacts.Contact;
 import org.jbox2d.dynamics.joints.Joint;
 import org.jbox2d.dynamics.joints.MouseJoint;
 import org.jbox2d.dynamics.joints.MouseJointDef;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
+import ubc.swim.dynamics.controllers.DynamicsController;
 import ubc.swim.gui.ContactPoint;
 import ubc.swim.gui.SwimModel;
 import ubc.swim.gui.SwimSettings;
@@ -78,8 +71,8 @@ public abstract class SwimTest implements ContactListener {
 	protected static final long BOMB_TAG = 98989788987L;
 	protected static final long MOUSE_JOINT_TAG = 4567893364789L;
 
-	private static final Logger log = LoggerFactory
-			.getLogger(SwimTest.class);
+//	private static final Logger log = LoggerFactory
+//			.getLogger(SwimTest.class);
 
 	// keep these static so we don't have to recreate them every time
 	public final static ContactPoint[] points = new ContactPoint[MAX_CONTACT_POINTS];
@@ -89,13 +82,17 @@ public abstract class SwimTest implements ContactListener {
 		}
 	}
 
-	/**
-	 * Only visible for compatibility. Should use {@link #getWorld()} instead.
-	 */
-	protected World m_world;
+	protected World world;
+	
+	//Controllers which affect dynamics in this test
+	protected ArrayList<DynamicsController> dynControllers;
+	
 	private Body groundBody;
 	private MouseJoint mouseJoint;
-
+	
+	//If true, renders test world to screen on each dynamics step
+	private boolean drawingEnabled = true;
+	
 	private Body bomb;
 	private final Vec2 bombSpawnPoint = new Vec2();
 	private boolean bombSpawning = false;
@@ -110,7 +107,7 @@ public abstract class SwimTest implements ContactListener {
 	private final LinkedList<QueueItem> inputQueue;
 
 	private String title = null;
-	protected int m_textLine;
+	protected int textLine;
 	private final LinkedList<String> textList = new LinkedList<String>();
 
 	private float cachedCameraScale;
@@ -123,6 +120,7 @@ public abstract class SwimTest implements ContactListener {
 
 	public SwimTest() {
 		inputQueue = new LinkedList<QueueItem>();
+		dynControllers= new ArrayList<DynamicsController>();
 	}
 
 	public void init(SwimModel argModel) {
@@ -142,14 +140,14 @@ public abstract class SwimTest implements ContactListener {
 		};
 
 		Vec2 gravity = new Vec2(0, -10f);
-		m_world = new World(gravity, true);
+		world = new World(gravity, true);
 		bomb = null;
 		mouseJoint = null;
 
 		BodyDef bodyDef = new BodyDef();
-		groundBody = m_world.createBody(bodyDef);
+		groundBody = world.createBody(bodyDef);
 
-		init(m_world, false);
+		init(world, false);
 	}
 
 	public void init(World world, boolean deserialized) {
@@ -170,6 +168,14 @@ public abstract class SwimTest implements ContactListener {
 
 		initTest(deserialized);
 	}
+	
+	/**
+	 * Adds a world dynamics controller to this test
+	 * @param controller
+	 */
+	public void addController(DynamicsController controller) {
+		dynControllers.add(controller);
+	}
 
 	/**
 	 * Gets the current world
@@ -177,7 +183,7 @@ public abstract class SwimTest implements ContactListener {
 	 * @return
 	 */
 	public World getWorld() {
-		return m_world;
+		return world;
 	}
 
 	/**
@@ -359,7 +365,7 @@ public abstract class SwimTest implements ContactListener {
 			resetPending = false;
 		}
 
-		m_textLine = 30;
+		textLine = 30;
 
 		if (title != null) {
 			model.getDebugDraw().drawString(model.getPanelWidth() / 2, 15,
@@ -406,8 +412,12 @@ public abstract class SwimTest implements ContactListener {
 	private final Vec2 p1 = new Vec2();
 	private final Vec2 p2 = new Vec2();
 
+	/**
+	 * Executes a world update and (if enabled) rendering of the test.
+	 * @param settings
+	 */
 	public synchronized void step(SwimSettings settings) {
-		float hz = settings.getSetting(SwimSettings.Hz).value;
+		float hz = (float)settings.getSetting(SwimSettings.Hz).value;
 		float timeStep = hz > 0f ? 1f / hz : 0;
 		if (settings.singleStep && !settings.pause) {
 			settings.pause = true;
@@ -420,9 +430,9 @@ public abstract class SwimTest implements ContactListener {
 				timeStep = 0;
 			}
 
-			model.getDebugDraw().drawString(5, m_textLine, "****PAUSED****",
+			model.getDebugDraw().drawString(5, textLine, "****PAUSED****",
 					Color3f.WHITE);
-			m_textLine += 15;
+			textLine += 15;
 		}
 
 		int flags = 0;
@@ -441,18 +451,35 @@ public abstract class SwimTest implements ContactListener {
 				: 0;
 		model.getDebugDraw().setFlags(flags);
 
-		m_world.setWarmStarting(settings
+		world.setWarmStarting(settings
 				.getSetting(SwimSettings.WarmStarting).enabled);
-		m_world.setContinuousPhysics(settings
+		world.setContinuousPhysics(settings
 				.getSetting(SwimSettings.ContinuousCollision).enabled);
 
 		pointCount = 0;
+		
+		//Apply controllers
+		for (DynamicsController controller : dynControllers) {
+			controller.step(settings);
+		}
 
-		m_world.step(timeStep,
-				settings.getSetting(SwimSettings.VelocityIterations).value,
-				settings.getSetting(SwimSettings.PositionIterations).value);
-
-		m_world.drawDebugData();
+		world.step(timeStep,
+				settings.getSetting(SwimSettings.VelocityIterations).getIntValue(),
+				settings.getSetting(SwimSettings.PositionIterations).getIntValue());
+		
+		if (drawingEnabled)
+			debugDraw(settings);
+	}
+	
+	/** 
+	 * Renders the current world & debugging details for this test
+	 * @arg settings
+	 */
+	public void debugDraw(SwimSettings settings) {
+		float hz = (float)settings.getSetting(SwimSettings.Hz).value;
+		float timeStep = hz > 0f ? 1f / hz : 0;
+		
+		world.drawDebugData();
 
 		if (timeStep > 0f) {
 			++stepCount;
@@ -460,54 +487,54 @@ public abstract class SwimTest implements ContactListener {
 
 		if (settings.getSetting(SwimSettings.DrawStats).enabled) {
 			// Vec2.watchCreations = true;
-			model.getDebugDraw().drawString(5, m_textLine, "Engine Info",
+			model.getDebugDraw().drawString(5, textLine, "Engine Info",
 					color4);
-			m_textLine += 15;
-			model.getDebugDraw().drawString(5, m_textLine,
+			textLine += 15;
+			model.getDebugDraw().drawString(5, textLine,
 					"Framerate: " + model.getCalculatedFps(), Color3f.WHITE);
-			m_textLine += 15;
+			textLine += 15;
 			model.getDebugDraw().drawString(
 					5,
-					m_textLine,
+					textLine,
 					"bodies/contacts/joints/proxies = "
-							+ m_world.getBodyCount() + "/"
-							+ m_world.getContactCount() + "/"
-							+ m_world.getJointCount() + "/"
-							+ m_world.getProxyCount(), Color3f.WHITE);
-			m_textLine += 20;
+							+ world.getBodyCount() + "/"
+							+ world.getContactCount() + "/"
+							+ world.getJointCount() + "/"
+							+ world.getProxyCount(), Color3f.WHITE);
+			textLine += 20;
 		}
 
 		if (settings.getSetting(SwimSettings.DrawHelp).enabled) {
-			model.getDebugDraw().drawString(5, m_textLine, "Help", color4);
-			m_textLine += 15;
-			model.getDebugDraw().drawString(5, m_textLine,
+			model.getDebugDraw().drawString(5, textLine, "Help", color4);
+			textLine += 15;
+			model.getDebugDraw().drawString(5, textLine,
 					"Click and drag the left mouse button to move objects.",
 					Color3f.WHITE);
-			m_textLine += 15;
-			model.getDebugDraw().drawString(5, m_textLine,
+			textLine += 15;
+			model.getDebugDraw().drawString(5, textLine,
 					"Shift-Click to aim a bullet, or press space.",
 					Color3f.WHITE);
-			m_textLine += 15;
-			model.getDebugDraw().drawString(5, m_textLine,
+			textLine += 15;
+			model.getDebugDraw().drawString(5, textLine,
 					"Click and drag the right mouse button to move the view.",
 					Color3f.WHITE);
-			m_textLine += 15;
-			model.getDebugDraw().drawString(5, m_textLine,
+			textLine += 15;
+			model.getDebugDraw().drawString(5, textLine,
 					"Scroll to zoom in/out.", Color3f.WHITE);
-			m_textLine += 15;
-			model.getDebugDraw().drawString(5, m_textLine,
+			textLine += 15;
+			model.getDebugDraw().drawString(5, textLine,
 					"Press '[' or ']' to change tests, and 'r' to restart.",
 					Color3f.WHITE);
-			m_textLine += 20;
+			textLine += 20;
 		}
 
 		if (!textList.isEmpty()) {
-			model.getDebugDraw().drawString(5, m_textLine, "Test Info", color4);
-			m_textLine += 15;
+			model.getDebugDraw().drawString(5, textLine, "Test Info", color4);
+			textLine += 15;
 			for (String s : textList) {
 				model.getDebugDraw()
-						.drawString(5, m_textLine, s, Color3f.WHITE);
-				m_textLine += 15;
+						.drawString(5, textLine, s, Color3f.WHITE);
+				textLine += 15;
 			}
 			textList.clear();
 		}
@@ -543,6 +570,11 @@ public abstract class SwimTest implements ContactListener {
 					model.getDebugDraw().drawSegment(p1, p2, color3);
 				}
 			}
+		}
+		
+		//Draw controller debug info
+		for (DynamicsController controller : dynControllers) {
+			controller.draw(model.getDebugDraw());
 		}
 	}
 
@@ -606,7 +638,7 @@ public abstract class SwimTest implements ContactListener {
 	 */
 	public void mouseUp(Vec2 p) {
 		if (mouseJoint != null) {
-			m_world.destroyJoint(mouseJoint);
+			world.destroyJoint(mouseJoint);
 			mouseJoint = null;
 		}
 
@@ -634,7 +666,7 @@ public abstract class SwimTest implements ContactListener {
 		queryAABB.upperBound.set(p.x + .001f, p.y + .001f);
 		callback.point.set(p);
 		callback.fixture = null;
-		m_world.queryAABB(callback, queryAABB);
+		world.queryAABB(callback, queryAABB);
 
 		if (callback.fixture != null) {
 			Body body = callback.fixture.getBody();
@@ -643,7 +675,7 @@ public abstract class SwimTest implements ContactListener {
 			def.bodyB = body;
 			def.target.set(p);
 			def.maxForce = 1000f * body.getMass();
-			mouseJoint = (MouseJoint) m_world.createJoint(def);
+			mouseJoint = (MouseJoint) world.createJoint(def);
 			body.setAwake(true);
 		}
 	}
@@ -692,7 +724,7 @@ public abstract class SwimTest implements ContactListener {
 
 	public synchronized void launchBomb(Vec2 position, Vec2 velocity) {
 		if (bomb != null) {
-			m_world.destroyBody(bomb);
+			world.destroyBody(bomb);
 			bomb = null;
 		}
 		// todo optimize this
@@ -700,7 +732,7 @@ public abstract class SwimTest implements ContactListener {
 		bd.type = BodyType.DYNAMIC;
 		bd.position.set(position);
 		bd.bullet = true;
-		bomb = m_world.createBody(bd);
+		bomb = world.createBody(bd);
 		bomb.setLinearVelocity(velocity);
 
 		CircleShape circle = new CircleShape();
@@ -723,6 +755,10 @@ public abstract class SwimTest implements ContactListener {
 		bomb.createFixture(fd);
 	}
 
+	public void setDrawingEnabled(boolean enabled) {
+		this.drawingEnabled = enabled;
+	}
+	
 	public synchronized void spawnBomb(Vec2 worldPt) {
 		bombSpawnPoint.set(worldPt);
 		bombSpawning = true;

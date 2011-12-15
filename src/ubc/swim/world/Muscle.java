@@ -7,4 +7,8 @@ package ubc.swim.world;
  */
 public class Muscle {
 
+	/**
+	 * A value which defines maximum force allowed by this muscle
+	 */
+	protected float maxForce;
 }
