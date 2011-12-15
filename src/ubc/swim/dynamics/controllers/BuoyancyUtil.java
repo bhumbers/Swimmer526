@@ -17,7 +17,7 @@ import org.jbox2d.pooling.TLVec2;
  *
  */
 public class BuoyancyUtil {
-	// djm pooling, and from above
+	// some thread-safe pooled vectors used during computation
 	private static final TLVec2 tlNormalL = new TLVec2();
 	private static final TLMassData tlMd = new TLMassData();
 	private static final TLVec2 tlIntoVec = new TLVec2();
@@ -39,12 +39,9 @@ public class BuoyancyUtil {
 	 * http://personal.boristhebrave.com/project/b2buoyancycontroller
 	 * 
 	 * @param shape the shape whose submerged area will be calculated
-	 * @param normal
-	 *            the surface normal
-	 * @param offset
-	 *            the surface offset along normal
-	 * @param outputSubmergedCenter
-	 *            set to be the centerpoint of the submerged part of the given shape
+	 * @param normal the fluid surface normal
+	 * @param offset the fluid surface offset along normal
+	 * @param outputSubmergedCenter set to be the centerpoint of the submerged part of the given shape
 	 * @return the total volume less than offset along normal
 	 */
 	public static float computeSubmergedArea(Shape shape, Vec2 normal, float offset, Transform transform, Vec2 outputSubmergedCenter) {
@@ -57,7 +54,7 @@ public class BuoyancyUtil {
 			final Vec2 normalL = tlNormalL.get();
 			final MassData md = tlMd.get();
 	
-			// Transform plane into shape co-ordinates
+			// Transform fluid plane into shape coordinates
 			Mat22.mulTransToOut(transform.R, normal, normalL);
 			float offsetL = offset - Vec2.dot(normal, transform.position);
 	
@@ -111,51 +108,50 @@ public class BuoyancyUtil {
 				break;
 			}
 	
-			final Vec2 intoVec = tlIntoVec.get();
-			final Vec2 outoVec = tlOutoVec.get();
+			final Vec2 intoPoint = tlIntoVec.get();
+			final Vec2 outoPoint = tlOutoVec.get();
 			final Vec2 e1 = tlE1.get();
 			final Vec2 e2 = tlE2.get();
 	
 			int intoIndex2 = (intoIndex + 1) % pshape.m_vertexCount;
 			int outoIndex2 = (outoIndex + 1) % pshape.m_vertexCount;
 	
+			//Find normalized distances along incoming/outgoing edges where shape enters/exits fluid
 			float intoLambda = (0 - depths[intoIndex])
 					/ (depths[intoIndex2] - depths[intoIndex]);
 			float outoLambda = (0 - depths[outoIndex])
 					/ (depths[outoIndex2] - depths[outoIndex]);
 	
-			intoVec.set(pshape.m_vertices[intoIndex].x * (1 - intoLambda)
-					+ pshape.m_vertices[intoIndex2].x * intoLambda,
-					pshape.m_vertices[intoIndex].y * (1 - intoLambda)
-							+ pshape.m_vertices[intoIndex2].y * intoLambda);
-			outoVec.set(pshape.m_vertices[outoIndex].x * (1 - outoLambda)
-					+ pshape.m_vertices[outoIndex2].x * outoLambda,
-					pshape.m_vertices[outoIndex].y * (1 - outoLambda)
-							+ pshape.m_vertices[outoIndex2].y * outoLambda);
+			//Define the 2 points of intersection with fluid surface (1 incoming, 1 outgoing)
+			intoPoint.set(pshape.m_vertices[intoIndex].x * (1 - intoLambda) + pshape.m_vertices[intoIndex2].x * intoLambda,
+						pshape.m_vertices[intoIndex].y * (1 - intoLambda) + pshape.m_vertices[intoIndex2].y * intoLambda);
+			outoPoint.set(pshape.m_vertices[outoIndex].x * (1 - outoLambda) + pshape.m_vertices[outoIndex2].x * outoLambda,
+						pshape.m_vertices[outoIndex].y * (1 - outoLambda) + pshape.m_vertices[outoIndex2].y * outoLambda);
 	
 			// Initialize accumulator
-			final Vec2 center = tlCenter.get();
-			center.setZero();
-			final Vec2 p2b = tlP2b.get().set(pshape.m_vertices[intoIndex2]);
+			final Vec2 subCenter = tlCenter.get();
+			subCenter.setZero();
+			final Vec2 p2 = tlP2b.get().set(pshape.m_vertices[intoIndex2]);
 			final Vec2 p3 = tlP3.get();
 			p3.setZero();
 	
-			float k_inv3 = 1.0f / 3.0f;
+			float oneThird = 1.0f / 3.0f;
 	
-			// An awkward loop from intoIndex2+1 to outIndex2
+			// Iterate over pairs of submerged vertices (2nd index of pair ranges from intoIndex2+1 to outIndex2)
+			// and add area of triangle formed by intoPoint and those 2 vertices
 			i = intoIndex2;
 			while (i != outoIndex2) {
 				i = (i + 1) % pshape.m_vertexCount;
-				if (i == outoIndex2) {
-					p3.set(outoVec);
-				} else {
+				
+				if (i == outoIndex2)
+					p3.set(outoPoint);
+				else
 					p3.set(pshape.m_vertices[i]);
-				}
 	
-				// Add the triangle formed by intoVec,p2,p3
+				// Add the area of the triangle formed by intoPoint,p2,p3
 				{
-					e1.set(p2b).subLocal(intoVec);
-					e2.set(p3).subLocal(intoVec);
+					e1.set(p2).subLocal(intoPoint);
+					e2.set(p3).subLocal(intoPoint);
 	
 					float D = Vec2.cross(e1, e2);
 	
@@ -163,19 +159,18 @@ public class BuoyancyUtil {
 	
 					area += triangleArea;
 	
-					// Area weighted centroid
-					center.x += triangleArea * k_inv3 * (intoVec.x + p2b.x + p3.x);
-					center.y += triangleArea * k_inv3 * (intoVec.y + p2b.y + p3.y);
+					// Update area-weighted submerged center point
+					subCenter.x += triangleArea * ((intoPoint.x + p2.x + p3.x) * oneThird);
+					subCenter.y += triangleArea * ((intoPoint.y + p2.y + p3.y) * oneThird);
 				}
-				//
-				p2b.set(p3);
+
+				p2.set(p3);
 			}
 	
-			// Normalize and transform centroid
-			center.x *= 1.0f / area;
-			center.y *= 1.0f / area;
-	
-			Transform.mulToOut(transform, center, outputSubmergedCenter);
+			// Normalize submerged center point and transform it to world coords
+			subCenter.x *= 1.0f / area;
+			subCenter.y *= 1.0f / area;
+			Transform.mulToOut(transform, subCenter, outputSubmergedCenter);
 		}
 
 		return area;
