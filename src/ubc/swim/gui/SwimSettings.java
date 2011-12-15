@@ -58,6 +58,7 @@ public class SwimSettings {
   
   public static final String FluidDensity = "Fluid Density";
   public static final String FluidDrag = "Fluid Drag";
+  public static final String FluidVelocity = "Fluid Speed (horizontal)";
 
   public boolean pause = false;
   public boolean singleStep = false;
@@ -90,6 +91,7 @@ public class SwimSettings {
     
     addSetting(new SwimSetting(FluidDensity, SettingType.ENGINE, 3, 0, 20, 100));
     addSetting(new SwimSetting(FluidDrag, SettingType.ENGINE, 5, 0, 100, 400));
+    addSetting(new SwimSetting(FluidVelocity, SettingType.ENGINE, 0, -100, 100, 200));
   }
 
   /**

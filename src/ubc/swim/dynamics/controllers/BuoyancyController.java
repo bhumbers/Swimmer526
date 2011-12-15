@@ -66,6 +66,7 @@ public class BuoyancyController extends DynamicsController {
 		linearDrag = (float)settings.getSetting(SwimSettings.FluidDrag).value;
 		//TODO: what's a good way to scale angular drag? -bh, 12.14.2011
 		angularDrag = linearDrag;
+		velocity.x = (float)settings.getSetting(SwimSettings.FluidVelocity).value;
 		
 		boolean densityChanged = oldDensity != density;
 		
@@ -120,7 +121,7 @@ public class BuoyancyController extends DynamicsController {
 			body.applyForce(buoyancyForce,subCenterOfMass);
 			
 			//Linear drag
-			//TODO: better drag. -bh, 12.14.2011
+			//TODO: better drag that is applied per edge? -bh, 12.14.2011
 			Vec2 dragForce = body.getLinearVelocityFromWorldPoint(subCenter).sub(velocity);
 			dragForce.mulLocal(-linearDrag*subArea);
 			body.applyForce(dragForce,subCenter);
