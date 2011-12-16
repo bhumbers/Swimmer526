@@ -3,6 +3,7 @@ package ubc.swim.world;
 import java.util.ArrayList;
 
 import org.jbox2d.collision.shapes.PolygonShape;
+import org.jbox2d.common.MathUtils;
 import org.jbox2d.common.Vec2;
 import org.jbox2d.dynamics.Body;
 import org.jbox2d.dynamics.BodyDef;
@@ -139,6 +140,9 @@ public class HumanChar extends Character {
 			
 			RevoluteJointDef rjd = new RevoluteJointDef();
 			rjd.initialize(torso, upperArm, new Vec2(armJointPoint.x, armJointPoint.y));
+//			rjd.enableMotor = true;
+//			rjd.motorSpeed = -(float)Math.PI;
+//			rjd.maxMotorTorque = 1000;
 			shoulderJoints.add(world.createJoint(rjd));
 			
 			bodies.add(upperArm);
@@ -195,7 +199,7 @@ public class HumanChar extends Character {
 			
 			bodies.add(upperLeg);
 			
-			//Lower Arm
+			//Lower leg
 			bd = new BodyDef();
 			bd.type = BodyType.DYNAMIC;
 			//TODO: lower leg offset that varies by stroke (constant for now)
@@ -224,13 +228,30 @@ public class HumanChar extends Character {
 	}
 	
 	@Override
-	public void step(SwimSettings settings, float runtime) {
-//		//TODO: use control params. Just debugging for now
-//		for (int i = 0; i < shoulderJoints.size(); i++) {
-//			RevoluteJoint shoulderJoint = (RevoluteJoint)shoulderJoints.get(i);
-//			Body upperArm = shoulderJoint.getBodyB();
-//			float shoulderForce = 1.0f + 3.0f * (float)Math.abs(Math.sin(upperArm.getTransform().getAngle()));
-//			upperArm.applyForce(upperArm.getWorldVector(new Vec2(0, shoulderForce)), upperArm.getWorldPoint(new Vec2(0, -upperArmLen/2)));
-//		}
+	public void step(SwimSettings settings, float dt, float runtime) {
+		if (dt == 0) return;
+		
+		//TODO: use control params. Just debugging for now
+		Body torso = null;
+		float torsoImpulse = 0.0f;
+		for (int i = 0; i < shoulderJoints.size(); i++) {
+			RevoluteJoint shoulderJoint = (RevoluteJoint)shoulderJoints.get(i);
+			torso = shoulderJoint.getBodyA();
+			Body upperArm = shoulderJoint.getBodyB();			
+			
+			float targetAngVel = -2 * (float)Math.PI;
+			float errorAngVel = (upperArm.m_angularVelocity - torso.m_angularVelocity) - targetAngVel;
+			float impulse = 8 * shoulderJoint.m_motorMass * (-errorAngVel);
+			
+			float maxImpulse = dt * 30;
+			impulse = MathUtils.clamp(impulse, -maxImpulse, maxImpulse);
+			
+			//TODO: apply a torque, not a direct impulse
+			torsoImpulse -= torso.m_invI * impulse;
+			upperArm.m_angularVelocity += upperArm.m_invI * impulse;
+		}
+		//Modify torso ang vel afterward... doing it during the loop causes order-of-application of forces to blow things up
+		if (torso != null)
+			torso.m_angularVelocity += torsoImpulse;
 	}
 }

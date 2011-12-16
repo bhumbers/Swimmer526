@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import org.jbox2d.common.Vec2;
 import org.jbox2d.dynamics.Body;
 import org.jbox2d.dynamics.World;
-import org.jbox2d.dynamics.joints.Joint;
 
 import ubc.swim.gui.SwimSettings;
 
@@ -73,9 +72,10 @@ public class Character {
 	/**
 	 * Update controls on this character for given time step
 	 * @param settings
+	 * @param dt size of simulation step
 	 * @param runtime Total world simulation time so far
 	 */
-	public void step(SwimSettings settings, float runtime) {
+	public void step(SwimSettings settings, float dt, float runtime) {
 		//TODO: override in subclasses
 	}
 }

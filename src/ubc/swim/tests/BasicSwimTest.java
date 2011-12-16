@@ -30,9 +30,7 @@ import org.jbox2d.collision.shapes.PolygonShape;
 import org.jbox2d.common.Vec2;
 import org.jbox2d.dynamics.Body;
 import org.jbox2d.dynamics.BodyDef;
-import org.jbox2d.dynamics.BodyType;
 import org.jbox2d.dynamics.joints.RevoluteJoint;
-import org.jbox2d.dynamics.joints.RevoluteJointDef;
 
 import ubc.swim.dynamics.controllers.BuoyancyControllerDef;
 import ubc.swim.dynamics.controllers.DynamicsController;
@@ -137,7 +135,7 @@ public class BasicSwimTest extends SwimTest {
 	
 	@Override
 	public void step(SwimSettings settings) {
-		character.step(settings, runtime);
+		character.step(settings, getTimeStep(settings), runtime);
 		
 		super.step(settings);
 

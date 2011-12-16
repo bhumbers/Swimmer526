@@ -421,25 +421,33 @@ public abstract class SwimTest implements ContactListener {
 	private final Vec2 p2 = new Vec2();
 
 	/**
+	 * Returns time step to be used on next simulation update based on given settings
+	 */
+	protected float getTimeStep(SwimSettings settings) {
+		float hz = (float)settings.getSetting(SwimSettings.Hz).value;
+		float dt = hz > 0f ? 1f / hz : 0;
+		
+		if (settings.pause && settings.singleStep == false) 
+			dt = 0;
+		
+		return dt;
+	}
+	
+	/**
 	 * Executes a world update and (if enabled) rendering of the test.
 	 * @param settings
 	 */
 	public synchronized void step(SwimSettings settings) {
-		float hz = (float)settings.getSetting(SwimSettings.Hz).value;
-		float timeStep = hz > 0f ? 1f / hz : 0;
-		if (settings.singleStep && !settings.pause) {
+		float dt = getTimeStep(settings);
+		
+		if (settings.singleStep && !settings.pause)
 			settings.pause = true;
-		}
 
+		if (settings.pause && settings.singleStep)
+			settings.singleStep = false;
+		
 		if (settings.pause) {
-			if (settings.singleStep) {
-				settings.singleStep = false;
-			} else {
-				timeStep = 0;
-			}
-
-			model.getDebugDraw().drawString(5, textLine, "****PAUSED****",
-					Color3f.WHITE);
+			model.getDebugDraw().drawString(5, textLine, "****PAUSED****", Color3f.WHITE);
 			textLine += 15;
 		}
 
@@ -471,9 +479,9 @@ public abstract class SwimTest implements ContactListener {
 			controller.step(settings);
 		}
 		
-		runtime += timeStep;
+		runtime += dt;
 
-		world.step(timeStep,
+		world.step(dt,
 				settings.getSetting(SwimSettings.VelocityIterations).getIntValue(),
 				settings.getSetting(SwimSettings.PositionIterations).getIntValue());
 		
