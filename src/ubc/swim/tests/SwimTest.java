@@ -398,6 +398,9 @@ public abstract class SwimTest implements ContactListener {
 					case ShiftMouseDown:
 						shiftMouseDown(i.p);
 						break;
+					case CtrlMouseDown:
+						ctrlMouseDown(i.p);
+						break;
 					}
 				}
 			}
@@ -585,6 +588,12 @@ public abstract class SwimTest implements ContactListener {
 			inputQueue.addLast(new QueueItem(QueueItemType.ShiftMouseDown, p));
 		}
 	}
+	
+	public void queueCtrlMouseDown(Vec2 p) {
+		synchronized (inputQueue) {
+			inputQueue.addLast(new QueueItem(QueueItemType.CtrlMouseDown, p));
+		}
+	}
 
 	public void queueMouseUp(Vec2 p) {
 		synchronized (inputQueue) {
@@ -631,6 +640,34 @@ public abstract class SwimTest implements ContactListener {
 		}
 
 		spawnBomb(p);
+	}
+	
+	/**
+	 * Called when ctrl-mouse down occurs
+	 * 
+	 * @param p
+	 */
+	public void ctrlMouseDown(Vec2 p) {
+		mouseWorld.set(p);
+
+		if (mouseJoint != null) {
+			return;
+		}
+
+		queryAABB.lowerBound.set(p.x - .001f, p.y - .001f);
+		queryAABB.upperBound.set(p.x + .001f, p.y + .001f);
+		callback.point.set(p);
+		callback.fixture = null;
+		world.queryAABB(callback, queryAABB);
+
+		//Swap between dynamic and static
+		if (callback.fixture != null) {
+			Body body = callback.fixture.getBody();
+			switch (body.m_type) {
+				case DYNAMIC: body.setType(BodyType.STATIC); break;
+				case STATIC: body.setType(BodyType.DYNAMIC); break;
+			}
+		}
 	}
 
 	/**
@@ -868,7 +905,7 @@ class TestQueryCallback implements QueryCallback {
 }
 
 enum QueueItemType {
-	MouseDown, MouseMove, MouseUp, ShiftMouseDown, KeyPressed, KeyReleased
+	MouseDown, MouseMove, MouseUp, ShiftMouseDown, KeyPressed, KeyReleased, CtrlMouseDown
 }
 
 class QueueItem {

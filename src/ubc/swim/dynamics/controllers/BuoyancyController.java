@@ -208,7 +208,7 @@ public class BuoyancyController extends DynamicsController {
 		
 		//DEBUG: Draw submerged edges
 		for (Edge subEdge : subEdges)
-			debugDraw.drawSegment(subEdge.pA, subEdge.pB, new Color3f(1,0,0));
+			debugDraw.drawSegment(subEdge.pA, subEdge.pB, new Color3f(0,0.2f,1));
 		
 		if (drawDragForces) {
 			//DEBUG: Draw drag forces

@@ -36,296 +36,300 @@ import org.slf4j.LoggerFactory;
 import ubc.swim.tests.SwimTest;
 
 /**
- * Controls GUI update loop for Swimmer App.
- * Modeled on org.jbox2d.testbed.framework.TestbedController by Daniel Murphy
+ * Controls GUI update loop for Swimmer App. Modeled on
+ * org.jbox2d.testbed.framework.TestbedController by Daniel Murphy
+ * 
  * @author Ben Humberston
- *
+ * 
  */
 public class SwimController implements Runnable {
-  private static final Logger log = LoggerFactory.getLogger(SwimController.class);
+	private static final Logger log = LoggerFactory.getLogger(SwimController.class);
 
-  public static final int DEFAULT_FPS = 60;
+	public static final int DEFAULT_FPS = 60;
 
-  private SwimTest currTest = null;
-  private SwimTest nextTest = null;
-  
-  private long startTime;
-  private long frameCount;
-  private int targetFrameRate;
-  private float frameRate = 0;
-  private boolean animating = false;
-  private Thread animator;
+	private SwimTest currTest = null;
+	private SwimTest nextTest = null;
 
-  private final SwimModel model;
-  private final SwimPanel panel;
+	private long startTime;
+	private long frameCount;
+	private int targetFrameRate;
+	private float frameRate = 0;
+	private boolean animating = false;
+	private Thread animator;
 
-  public SwimController(SwimModel argModel, SwimWorldPanel argPanel) {
-    model = argModel;
-    setFrameRate(DEFAULT_FPS);
-    panel = argPanel;
-    animator = new Thread(this, "SwimController");
-    addListeners();
-  }
-  
-  private void addListeners(){
-    // time for our controlling
-    model.addTestChangeListener(new SwimModel.TestChangedListener() {
-      @Override
-      public void testChanged(SwimTest argTest, int argIndex) {
-        nextTest = argTest;
-        panel.grabFocus();
-      }
-    });
-    panel.addKeyListener(new KeyListener() {
-      @Override
-      public void keyTyped(KeyEvent e) {
-      }
+	private final SwimModel model;
+	private final SwimPanel panel;
 
-      @Override
-      public void keyReleased(KeyEvent e) {
-        char key = e.getKeyChar();
-        int code = e.getKeyCode();
-        if (key != KeyEvent.CHAR_UNDEFINED) {
-          model.getKeys()[key] = false;
-        }
-        model.getCodedKeys()[code] = false;
-        if (model.getCurrTest() != null) {
-          model.getCurrTest().queueKeyReleased(key, code);
-        }
-      }
+	public SwimController(SwimModel argModel, SwimWorldPanel argPanel) {
+		model = argModel;
+		setFrameRate(DEFAULT_FPS);
+		panel = argPanel;
+		animator = new Thread(this, "SwimController");
+		addListeners();
+	}
 
-      @Override
-      public void keyPressed(KeyEvent e) {
-        char key = e.getKeyChar();
-        int code = e.getKeyCode();
-        if (key != KeyEvent.CHAR_UNDEFINED) {
-          model.getKeys()[key] = true;
-        }
-        model.getCodedKeys()[code] = true;
+	private void addListeners() {
+		// time for our controlling
+		model.addTestChangeListener(new SwimModel.TestChangedListener() {
+			@Override
+			public void testChanged(SwimTest argTest, int argIndex) {
+				nextTest = argTest;
+				panel.grabFocus();
+			}
+		});
+		panel.addKeyListener(new KeyListener() {
+			@Override
+			public void keyTyped(KeyEvent e) {
+			}
 
-        if (key == ' ' && model.getCurrTest() != null) {
-          model.getCurrTest().lanchBomb();
-        } else if (key == '[') {
-          lastTest();
-        } else if (key == ']') {
-          nextTest();
-        } else if (key == 'r') {
-          resetTest();
-        }
-        else if (model.getCurrTest() != null) {
-          model.getCurrTest().queueKeyPressed(key, code);
-        }
-      }
-    });
+			@Override
+			public void keyReleased(KeyEvent e) {
+				char key = e.getKeyChar();
+				int code = e.getKeyCode();
+				if (key != KeyEvent.CHAR_UNDEFINED) {
+					model.getKeys()[key] = false;
+				}
+				model.getCodedKeys()[code] = false;
+				if (model.getCurrTest() != null) {
+					model.getCurrTest().queueKeyReleased(key, code);
+				}
+			}
 
-    panel.addMouseListener(new MouseAdapter() {
-      @Override
-      public void mouseReleased(MouseEvent e) {
-        if (model.getCurrTest() != null) {
-          Vec2 pos = new Vec2(e.getX(), e.getY());
-          model.getDebugDraw().getScreenToWorldToOut(pos, pos);
-          model.getCurrTest().queueMouseUp(pos);
-        }
-      }
+			@Override
+			public void keyPressed(KeyEvent e) {
+				char key = e.getKeyChar();
+				int code = e.getKeyCode();
+				if (key != KeyEvent.CHAR_UNDEFINED) {
+					model.getKeys()[key] = true;
+				}
+				model.getCodedKeys()[code] = true;
 
-      @Override
-      public void mousePressed(MouseEvent e) {
-        panel.grabFocus();
-        if (model.getCurrTest() != null) {
-          Vec2 pos = new Vec2(e.getX(), e.getY());
-          if (e.getButton() == MouseEvent.BUTTON1) {
-            model.getDebugDraw().getScreenToWorldToOut(pos, pos);
-            model.getCurrTest().queueMouseDown(pos);
-            if (model.getCodedKeys()[KeyEvent.VK_SHIFT]) {
-              model.getCurrTest().queueShiftMouseDown(pos);
-            }
-          }
-        }
-      }
-    });
+				if (key == ' ' && model.getCurrTest() != null) {
+					model.getCurrTest().lanchBomb();
+				} else if (key == '[') {
+					lastTest();
+				} else if (key == ']') {
+					nextTest();
+				} else if (key == 'r') {
+					resetTest();
+				} else if (model.getCurrTest() != null) {
+					model.getCurrTest().queueKeyPressed(key, code);
+				}
+			}
+		});
 
-    panel.addMouseMotionListener(new MouseMotionListener() {
-      final Vec2 posDif = new Vec2();
-      final Vec2 pos = new Vec2();
-      final Vec2 pos2 = new Vec2();
+		panel.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseReleased(MouseEvent e) {
+				if (model.getCurrTest() != null) {
+					Vec2 pos = new Vec2(e.getX(), e.getY());
+					model.getDebugDraw().getScreenToWorldToOut(pos, pos);
+					model.getCurrTest().queueMouseUp(pos);
+				}
+			}
 
-      public void mouseDragged(MouseEvent e) {
-        pos.set(e.getX(), e.getY());
+			@Override
+			public void mousePressed(MouseEvent e) {
+				panel.grabFocus();
+				if (model.getCurrTest() != null) {
+					Vec2 pos = new Vec2(e.getX(), e.getY());
+					if (e.getButton() == MouseEvent.BUTTON1) {
+						model.getDebugDraw().getScreenToWorldToOut(pos, pos);
+						if (model.getCodedKeys()[KeyEvent.VK_SHIFT]) {
+							model.getCurrTest().queueShiftMouseDown(pos);
+						}
+						else if (model.getCodedKeys()[KeyEvent.VK_CONTROL]) {
+							model.getCurrTest().queueCtrlMouseDown(pos);
+						}
+						else {
+							model.getCurrTest().queueMouseDown(pos);
+						}
+					}
+				}
+			}
+		});
 
-        if (e.getButton() == MouseEvent.BUTTON3) {
-          posDif.set(model.getMouse());
-          model.setMouse(pos);
-          posDif.subLocal(pos);
-          model.getDebugDraw().getViewportTranform().getScreenVectorToWorld(posDif, posDif);
-          model.getDebugDraw().getViewportTranform().getCenter().addLocal(posDif);
-          if (model.getCurrTest() != null) {
-            model.getCurrTest().setCachedCameraPos(
-                model.getDebugDraw().getViewportTranform().getCenter());
-          }
-        }
-        if (model.getCurrTest() != null) {
-          model.setMouse(pos);
-          model.getDebugDraw().getScreenToWorldToOut(pos, pos);
-          model.getCurrTest().queueMouseMove(pos);
-        }
-      }
+		panel.addMouseMotionListener(new MouseMotionListener() {
+			final Vec2 posDif = new Vec2();
+			final Vec2 pos = new Vec2();
+			final Vec2 pos2 = new Vec2();
 
-      @Override
-      public void mouseMoved(MouseEvent e) {
-        pos2.set(e.getX(), e.getY());
-        model.setMouse(pos2);
-        if (model.getCurrTest() != null) {
-          model.getDebugDraw().getScreenToWorldToOut(pos2, pos2);
-          model.getCurrTest().queueMouseMove(pos2);
-        }
-      }
-    });
-  }
-  
-  protected void loopInit() {
-    panel.grabFocus();
-    
-    if (currTest != null) {
-      currTest.init(model);
-    }
-  }
+			public void mouseDragged(MouseEvent e) {
+				pos.set(e.getX(), e.getY());
 
-  protected void update() {
-    if (currTest != null) {
-      currTest.update();
-    }
-  }
+				if (e.getButton() == MouseEvent.BUTTON3) {
+					posDif.set(model.getMouse());
+					model.setMouse(pos);
+					posDif.subLocal(pos);
+					model.getDebugDraw().getViewportTranform().getScreenVectorToWorld(posDif, posDif);
+					model.getDebugDraw().getViewportTranform().getCenter().addLocal(posDif);
+					if (model.getCurrTest() != null) {
+						model.getCurrTest().setCachedCameraPos(model.getDebugDraw().getViewportTranform().getCenter());
+					}
+				}
+				if (model.getCurrTest() != null) {
+					model.setMouse(pos);
+					model.getDebugDraw().getScreenToWorldToOut(pos, pos);
+					model.getCurrTest().queueMouseMove(pos);
+				}
+			}
 
-  public void nextTest() {
-    int index = model.getCurrTestIndex() + 1;
-    index %= model.getTestsSize();
+			@Override
+			public void mouseMoved(MouseEvent e) {
+				pos2.set(e.getX(), e.getY());
+				model.setMouse(pos2);
+				if (model.getCurrTest() != null) {
+					model.getDebugDraw().getScreenToWorldToOut(pos2, pos2);
+					model.getCurrTest().queueMouseMove(pos2);
+				}
+			}
+		});
+	}
 
-    while (!model.isTestAt(index) && index < model.getTestsSize() - 1) {
-      index++;
-    }
-    if (model.isTestAt(index)) {
-      model.setCurrTestIndex(index);
-    }
-  }
-  
-  public void resetTest(){
-    model.getCurrTest().reset();
-  }
+	protected void loopInit() {
+		panel.grabFocus();
 
-  public void lastTest() {
-    int index = model.getCurrTestIndex() - 1;
-    index = (index < 0) ? index + model.getTestsSize() : index;
+		if (currTest != null) {
+			currTest.init(model);
+		}
+	}
 
-    while (!model.isTestAt(index) && index > 0) {
-      index--;
-    }
+	protected void update() {
+		if (currTest != null) {
+			currTest.update();
+		}
+	}
 
-    if (model.isTestAt(index)) {
-      model.setCurrTestIndex(index);
-    }
-  }
-  
-  public void playTest(int argIndex){
-    if (argIndex == -1) {
-      return;
-    }
-    while (!model.isTestAt(argIndex)) {
-      if (argIndex + 1 < model.getTestsSize()) {
-        argIndex++;
-      } else {
-        return;
-      }
-    }
-    model.setCurrTestIndex(argIndex);
-  }
+	public void nextTest() {
+		int index = model.getCurrTestIndex() + 1;
+		index %= model.getTestsSize();
 
-  public void setFrameRate(int fps) {
-    if (fps <= 0) {
-      throw new IllegalArgumentException("Fps cannot be less than or equal to zero");
-    }
-    targetFrameRate = fps;
-    frameRate = fps;
-  }
+		while (!model.isTestAt(index) && index < model.getTestsSize() - 1) {
+			index++;
+		}
+		if (model.isTestAt(index)) {
+			model.setCurrTestIndex(index);
+		}
+	}
 
-  public int getFrameRate() {
-    return targetFrameRate;
-  }
+	public void resetTest() {
+		model.getCurrTest().reset();
+	}
 
-  public float getCalculatedFrameRate() {
-    return frameRate;
-  }
+	public void lastTest() {
+		int index = model.getCurrTestIndex() - 1;
+		index = (index < 0) ? index + model.getTestsSize() : index;
 
-  public long getStartTime() {
-    return startTime;
-  }
+		while (!model.isTestAt(index) && index > 0) {
+			index--;
+		}
 
-  public long getFrameCount() {
-    return frameCount;
-  }
+		if (model.isTestAt(index)) {
+			model.setCurrTestIndex(index);
+		}
+	}
 
-  public boolean isAnimating() {
-    return animating;
-  }
+	public void playTest(int argIndex) {
+		if (argIndex == -1) {
+			return;
+		}
+		while (!model.isTestAt(argIndex)) {
+			if (argIndex + 1 < model.getTestsSize()) {
+				argIndex++;
+			} else {
+				return;
+			}
+		}
+		model.setCurrTestIndex(argIndex);
+	}
 
-  public synchronized void start() {
-    if (animating != true) {
-      frameCount = 0;
-      animator.start();
-    } else {
-      log.warn("Animation is already animating.");
-    }
-  }
+	public void setFrameRate(int fps) {
+		if (fps <= 0) {
+			throw new IllegalArgumentException("Fps cannot be less than or equal to zero");
+		}
+		targetFrameRate = fps;
+		frameRate = fps;
+	}
 
-  public synchronized void stop() {
-    animating = false;
-  }
+	public int getFrameRate() {
+		return targetFrameRate;
+	}
 
-  public void run() {
-    long beforeTime, afterTime, updateTime, timeDiff, sleepTime, timeSpent;
-    float timeInSecs;
-    beforeTime = startTime = updateTime = System.nanoTime();
-    sleepTime = 0;
+	public float getCalculatedFrameRate() {
+		return frameRate;
+	}
 
-    animating = true;
-    loopInit();
-    while (animating) {
+	public long getStartTime() {
+		return startTime;
+	}
 
-      if (nextTest != null) {
-        if(currTest != null) {
-          currTest.exit();    		
-        }
-        currTest = nextTest;
-        currTest.init(model);
-        nextTest = null;
-      }
+	public long getFrameCount() {
+		return frameCount;
+	}
 
-      timeSpent = beforeTime - updateTime;
-      if (timeSpent > 0) {
-        timeInSecs = timeSpent * 1.0f / 1000000000.0f;
-        updateTime = System.nanoTime();
-        frameRate = (frameRate * 0.9f) + (1.0f / timeInSecs) * 0.1f;
-        model.setCalculatedFps(frameRate);
-      } else {
-        updateTime = System.nanoTime();
-      }
+	public boolean isAnimating() {
+		return animating;
+	}
 
-      panel.render();
-      update();
-      panel.paintScreen();
-      frameCount++;
+	public synchronized void start() {
+		if (animating != true) {
+			frameCount = 0;
+			animator.start();
+		} else {
+			log.warn("Animation is already animating.");
+		}
+	}
 
-      afterTime = System.nanoTime();
+	public synchronized void stop() {
+		animating = false;
+	}
 
-      timeDiff = afterTime - beforeTime;
-      sleepTime = (1000000000 / targetFrameRate - timeDiff) / 1000000;
-      if (sleepTime > 0) {
-        try {
-          Thread.sleep(sleepTime);
-        } catch (InterruptedException ex) {
-        }
-      }
+	public void run() {
+		long beforeTime, afterTime, updateTime, timeDiff, sleepTime, timeSpent;
+		float timeInSecs;
+		beforeTime = startTime = updateTime = System.nanoTime();
+		sleepTime = 0;
 
-      beforeTime = System.nanoTime();
-    } // end of run loop
-  }
+		animating = true;
+		loopInit();
+		while (animating) {
+
+			if (nextTest != null) {
+				if (currTest != null) {
+					currTest.exit();
+				}
+				currTest = nextTest;
+				currTest.init(model);
+				nextTest = null;
+			}
+
+			timeSpent = beforeTime - updateTime;
+			if (timeSpent > 0) {
+				timeInSecs = timeSpent * 1.0f / 1000000000.0f;
+				updateTime = System.nanoTime();
+				frameRate = (frameRate * 0.9f) + (1.0f / timeInSecs) * 0.1f;
+				model.setCalculatedFps(frameRate);
+			} else {
+				updateTime = System.nanoTime();
+			}
+
+			panel.render();
+			update();
+			panel.paintScreen();
+			frameCount++;
+
+			afterTime = System.nanoTime();
+
+			timeDiff = afterTime - beforeTime;
+			sleepTime = (1000000000 / targetFrameRate - timeDiff) / 1000000;
+			if (sleepTime > 0) {
+				try {
+					Thread.sleep(sleepTime);
+				} catch (InterruptedException ex) {
+				}
+			}
+
+			beforeTime = System.nanoTime();
+		} // end of run loop
+	}
 }

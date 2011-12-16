@@ -37,6 +37,8 @@ import org.jbox2d.dynamics.joints.RevoluteJointDef;
 import ubc.swim.dynamics.controllers.BuoyancyControllerDef;
 import ubc.swim.dynamics.controllers.DynamicsController;
 import ubc.swim.gui.SwimSettings;
+import ubc.swim.world.HumanChar;
+import ubc.swim.world.HumanChar.Stroke;
 
 /**
  * Basic swimming test environment
@@ -48,6 +50,11 @@ import ubc.swim.gui.SwimSettings;
 public class BasicSwimTest extends SwimTest {
 	
 	private RevoluteJoint m_joint1;
+	
+	@Override
+	public float getDefaultCameraScale() {
+		return 100;
+	}
 	
 	@Override
 	public void initTest(boolean deserialized) {
@@ -63,26 +70,24 @@ public class BasicSwimTest extends SwimTest {
 			ground.createFixture(shape, 0.0f);
 		}
 
-		{
-			Body prevBody = ground;
-
-//			// Define crank.
+//		{
+//			Body prevBody = ground;
+//
+//			float boatLength = 6.0f;
+//			float boatWidth = 0.5f;
+//			float propLength = 2.0f;
+//			float propWidth = 0.4f;
+//			
+//			// Define a powered boat :).
 //			{
 //				PolygonShape shape = new PolygonShape();
-//				shape.setAsBox(0.5f, 2.0f);
+//				shape.setAsBox(boatLength, boatWidth);
 //
 //				BodyDef bd = new BodyDef();
 //				bd.type = BodyType.DYNAMIC;
-//				bd.position.set(0.0f, 7.0f);
+//				bd.position.set(0.0f, fluidHeight);
 //				Body body = getWorld().createBody(bd);
 //				body.createFixture(shape, 2.0f);
-//
-//				RevoluteJointDef rjd = new RevoluteJointDef();
-//				rjd.initialize(prevBody, body, new Vec2(0.0f, 5.0f));
-//				rjd.motorSpeed = 1.0f * MathUtils.PI;
-//				rjd.maxMotorTorque = 10000.0f;
-//				rjd.enableMotor = true;
-//				m_joint1 = (RevoluteJoint)getWorld().createJoint(rjd);
 //
 //				prevBody = body;
 //			}
@@ -90,98 +95,28 @@ public class BasicSwimTest extends SwimTest {
 //			// Define follower.
 //			{
 //				PolygonShape shape = new PolygonShape();
-//				shape.setAsBox(0.5f, 4.0f);
+//				shape.setAsBox(propWidth, propLength);
 //
 //				BodyDef bd = new BodyDef();
 //				bd.type = BodyType.DYNAMIC;
-//				bd.position.set(0.0f, 13.0f);
+//				bd.position.set(-boatLength, fluidHeight - propLength);
 //				Body body = getWorld().createBody(bd);
 //				body.createFixture(shape, 2.0f);
 //
 //				RevoluteJointDef rjd = new RevoluteJointDef();
-//				rjd.initialize(prevBody, body, new Vec2(0.0f, 9.0f));
-//				rjd.enableMotor = false;
+//				rjd.initialize(prevBody, body, new Vec2(-boatLength, fluidHeight));
+//				rjd.maxMotorTorque = 1000.0f;
+//				rjd.motorSpeed = (float)(-2 * Math.PI);
+//				rjd.enableMotor = true;
 //				getWorld().createJoint(rjd);
 //
 //				prevBody = body;
 //			}
-//
-//			// Define piston
-//			{
-//				PolygonShape shape = new PolygonShape();
-//				shape.setAsBox(1.5f, 1.5f);
-//
-//				BodyDef bd = new BodyDef();
-//				bd.type = BodyType.DYNAMIC;
-//				bd.position.set(0.0f, 17.0f);
-//				Body body = getWorld().createBody(bd);
-//				body.createFixture(shape, 2.0f);
-//
-//				RevoluteJointDef rjd = new RevoluteJointDef();
-//				rjd.initialize(prevBody, body, new Vec2(0.0f, 17.0f));
-//				getWorld().createJoint(rjd);
-//
-//				PrismaticJointDef pjd = new PrismaticJointDef();
-//				pjd.initialize(ground, body, new Vec2(0.0f, 17.0f), new Vec2(0.0f, 1.0f));
-//
-//				pjd.maxMotorForce = 1000.0f;
-//				pjd.enableMotor = true;
-//
-//				m_joint2 = (PrismaticJoint)getWorld().createJoint(pjd);
-//			}
-
-//			// Create a payload
-//			{
-//				PolygonShape shape = new PolygonShape();
-//				shape.setAsBox(1.5f, 1.5f);
-//
-//				BodyDef bd = new BodyDef();
-//				bd.type = BodyType.DYNAMIC;
-//				bd.position.set(0.0f, 23.0f);
-//				Body body = getWorld().createBody(bd);
-//				body.createFixture(shape, 2.0f);
-//			}
-			
-			float boatLength = 6.0f;
-			float boatWidth = 0.5f;
-			float propLength = 2.0f;
-			float propWidth = 0.4f;
-			
-			// Define a powered boat :).
-			{
-				PolygonShape shape = new PolygonShape();
-				shape.setAsBox(boatLength, boatWidth);
-
-				BodyDef bd = new BodyDef();
-				bd.type = BodyType.DYNAMIC;
-				bd.position.set(0.0f, fluidHeight);
-				Body body = getWorld().createBody(bd);
-				body.createFixture(shape, 2.0f);
-
-				prevBody = body;
-			}
-
-			// Define follower.
-			{
-				PolygonShape shape = new PolygonShape();
-				shape.setAsBox(propWidth, propLength);
-
-				BodyDef bd = new BodyDef();
-				bd.type = BodyType.DYNAMIC;
-				bd.position.set(-boatLength, fluidHeight - propLength);
-				Body body = getWorld().createBody(bd);
-				body.createFixture(shape, 2.0f);
-
-				RevoluteJointDef rjd = new RevoluteJointDef();
-				rjd.initialize(prevBody, body, new Vec2(-boatLength, fluidHeight));
-				rjd.maxMotorTorque = 1000.0f;
-				rjd.motorSpeed = (float)(-2 * Math.PI);
-				rjd.enableMotor = true;
-				getWorld().createJoint(rjd);
-
-				prevBody = body;
-			}
-		}
+//		}
+		
+		HumanChar blah = new HumanChar(Stroke.CRAWL);
+		blah.initialize(getWorld());
+		blah.moveTo(0, 10);
 		
 		//Create fluid environment
 		BuoyancyControllerDef fluidDef = new BuoyancyControllerDef();

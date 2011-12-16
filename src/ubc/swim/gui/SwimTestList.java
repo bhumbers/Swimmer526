@@ -41,7 +41,7 @@ public class SwimTestList {
   public static void populateModel(SwimModel argModel){
       
       argModel.addCategory("Basic");
-      argModel.addTest(new PaddleTest());
       argModel.addTest(new BasicSwimTest());
+      argModel.addTest(new PaddleTest());
   }
 }

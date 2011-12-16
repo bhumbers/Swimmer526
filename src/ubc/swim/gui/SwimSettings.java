@@ -93,7 +93,7 @@ public class SwimSettings {
     
     addSetting(new SwimSetting(DrawDragForces, SettingType.DRAWING, true));
     
-    addSetting(new SwimSetting(FluidDensity, SettingType.ENGINE, 3, 0, 20, 100));
+    addSetting(new SwimSetting(FluidDensity, SettingType.ENGINE, 1, 0, 5, 100));
     addSetting(new SwimSetting(FluidDrag, SettingType.ENGINE, 5, 0, 100, 400));
     addSetting(new SwimSetting(FluidVelocity, SettingType.ENGINE, 0, -100, 100, 200));
   }
