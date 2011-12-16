@@ -123,6 +123,7 @@ public class BasicSwimTest extends SwimTest {
 		fluidDef.density = 5.0f;
 		fluidDef.offset = fluidHeight;
 		fluidDef.linearDrag = 100.0f;
+		fluidDef.useDensity = true;
 		DynamicsController fluid = fluidDef.create();
 		fluid.world = world;
 		for (Body body = getWorld().getBodyList(); body != null; body = body.getNext()) {
