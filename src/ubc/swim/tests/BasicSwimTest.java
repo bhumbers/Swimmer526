@@ -37,6 +37,7 @@ import org.jbox2d.dynamics.joints.RevoluteJointDef;
 import ubc.swim.dynamics.controllers.BuoyancyControllerDef;
 import ubc.swim.dynamics.controllers.DynamicsController;
 import ubc.swim.gui.SwimSettings;
+import ubc.swim.world.Character;
 import ubc.swim.world.HumanChar;
 import ubc.swim.world.HumanChar.Stroke;
 
@@ -50,6 +51,8 @@ import ubc.swim.world.HumanChar.Stroke;
 public class BasicSwimTest extends SwimTest {
 	
 	private RevoluteJoint m_joint1;
+	
+	private Character character;
 	
 	@Override
 	public float getDefaultCameraScale() {
@@ -114,9 +117,9 @@ public class BasicSwimTest extends SwimTest {
 //			}
 //		}
 		
-		HumanChar blah = new HumanChar(Stroke.CRAWL);
-		blah.initialize(getWorld());
-		blah.moveTo(0, 10);
+		character = new HumanChar(Stroke.CRAWL);
+		character.initialize(getWorld());
+		character.moveTo(0, 10);
 		
 		//Create fluid environment
 		BuoyancyControllerDef fluidDef = new BuoyancyControllerDef();
@@ -134,6 +137,8 @@ public class BasicSwimTest extends SwimTest {
 	
 	@Override
 	public void step(SwimSettings settings) {
+		character.step(settings, runtime);
+		
 		super.step(settings);
 
 	}

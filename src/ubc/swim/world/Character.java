@@ -7,6 +7,8 @@ import org.jbox2d.dynamics.Body;
 import org.jbox2d.dynamics.World;
 import org.jbox2d.dynamics.joints.Joint;
 
+import ubc.swim.gui.SwimSettings;
+
 /**
  * A multisegment character in the swimmer world.
  * 
@@ -23,16 +25,15 @@ public class Character {
 	protected ArrayList<Body> bodies;
 	
 	/**
-	 * All joint degrees of freedom for this character
+	 * Control parameters used by this character
 	 */
-	protected ArrayList<Joint> joints;
+	protected double[] controlParams;
 	
 	/**
 	 * Constructor
 	 */
 	public Character() {
 		bodies = new ArrayList<Body>();
-		joints = new ArrayList<Joint>();
 	}
 	
 	/**
@@ -67,5 +68,14 @@ public class Character {
 		
 		for (Body body : bodies)
 			body.setTransform(body.getPosition().add(translation), body.getAngle());
+	}
+	
+	/**
+	 * Update controls on this character for given time step
+	 * @param settings
+	 * @param runtime Total world simulation time so far
+	 */
+	public void step(SwimSettings settings, float runtime) {
+		//TODO: override in subclasses
 	}
 }

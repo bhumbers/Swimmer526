@@ -84,6 +84,8 @@ public abstract class SwimTest implements ContactListener {
 
 	protected World world;
 	
+	protected float runtime; //total simulated time in world since last reset
+	
 	//Controllers which affect dynamics in this test
 	protected ArrayList<DynamicsController> dynControllers;
 	
@@ -145,6 +147,7 @@ public abstract class SwimTest implements ContactListener {
 		world = new World(gravity, true);
 		bomb = null;
 		mouseJoint = null;
+		runtime = 0.0f;
 
 		BodyDef bodyDef = new BodyDef();
 		groundBody = world.createBody(bodyDef);
@@ -467,6 +470,8 @@ public abstract class SwimTest implements ContactListener {
 		for (DynamicsController controller : dynControllers) {
 			controller.step(settings);
 		}
+		
+		runtime += timeStep;
 
 		world.step(timeStep,
 				settings.getSetting(SwimSettings.VelocityIterations).getIntValue(),
