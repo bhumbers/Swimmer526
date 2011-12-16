@@ -66,8 +66,8 @@ public class HumanChar extends Character {
 		float lowerLegWidth = upperLegWidth * 0.7f;
 		float footLen = height * 0.035f;
 		
-		float defaultDensity = 1.0f;
-		float torsoDensity = 0.8f;
+		float defaultDensity = 1.1f;
+		float torsoDensity = 0.5f;
 		
 		float torsoHeight = height - legLen - headHeight;
 		float torsoWidth = height / 8;
@@ -126,7 +126,7 @@ public class HumanChar extends Character {
 			upperArm.createFixture(shape, defaultDensity);
 			
 			RevoluteJointDef rjd = new RevoluteJointDef();
-			rjd.initialize(torso, upperArm, new Vec2(torsoHeight/2, 0.0f));
+			rjd.initialize(torso, upperArm, new Vec2(armJointPoint.x, armJointPoint.y));
 			world.createJoint(rjd);
 			
 			bodies.add(upperArm);
@@ -150,7 +150,48 @@ public class HumanChar extends Character {
 			bodies.add(lowerArm);
 		}
 		
-		//TODO: create legs
+		//Create legs
+		Vec2 legJointPoint = new Vec2(-torsoHeight/2, 0.0f);
+		for (int i = 0; i < 2; i++) {
+			PolygonShape shape = new PolygonShape();
+			shape.setAsBox(upperLegLen/2, upperLegWidth/2);
+	
+			//Upper leg
+			BodyDef bd = new BodyDef();
+			bd.type = BodyType.DYNAMIC;
+			//TODO: start in/out of phase for fly/crawl (constant for now)
+			float upperLegOffset = (i == 1 && stroke == Stroke.CRAWL) ? -upperLegLen/2 : -upperLegLen/2;
+			bd.position.set(legJointPoint.x + upperLegOffset, legJointPoint.y);
+			Body upperLeg = world.createBody(bd);
+			upperLeg.createFixture(shape, defaultDensity);
+			
+			RevoluteJointDef rjd = new RevoluteJointDef();
+			rjd.enableLimit = true;
+			rjd.upperAngle = (float)Math.PI / 4;
+			rjd.lowerAngle = (float)-Math.PI / 4;
+			rjd.initialize(torso, upperLeg, new Vec2(legJointPoint.x, legJointPoint.y));
+			world.createJoint(rjd);
+			
+			bodies.add(upperLeg);
+			
+			//Lower Arm
+			bd = new BodyDef();
+			bd.type = BodyType.DYNAMIC;
+			//TODO: lower leg offset that varies by stroke (constant for now)
+			float lowerLegOffset = (i == 1 && stroke == Stroke.CRAWL) ? -upperLegLen/2 - lowerLegLen/2 : -upperLegLen/2 - lowerLegLen/2;
+			bd.position.set(upperLeg.getPosition().x + lowerLegOffset, 0.0f);
+			Body lowerLeg = world.createBody(bd);
+			lowerLeg.createFixture(shape, defaultDensity);
+			
+			rjd = new RevoluteJointDef();
+			rjd.enableLimit = true;
+			rjd.upperAngle = (float)0;
+			rjd.lowerAngle = (float)-Math.PI * 0.9f;
+			rjd.initialize(upperLeg, lowerLeg, new Vec2(0.5f * (upperLeg.getPosition().x + lowerLeg.getPosition().x), 0.5f * (upperLeg.getPosition().y + lowerLeg.getPosition().y)));
+			world.createJoint(rjd);
+			
+			bodies.add(lowerLeg);
+		}
 		
 		
 		
