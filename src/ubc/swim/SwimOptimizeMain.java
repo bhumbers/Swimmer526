@@ -20,30 +20,45 @@ public class SwimOptimizeMain {
 	public static void main(String[] args) {
 		
 		//Run optimization based on given args
-		String charName = args[0];
+		String charID = args[0];
+
+		String optDesc = charID;
 		
-		switch (charName) {
+		SwimmerOptimization opt = new SwimmerOptimization();
+		
+		//Set experiment-specific values
+		switch (charID) {
 			case "humanCrawl":
-				//TODO
-//				log.info("Running optimization for crawl stroke with human character...");
-				log.info("TODO: Human crawl optimization is not yet implemented");
+				optDesc = "crawl stroke with human character";
+				opt.setMinStoppingCost(1);
+				opt.setMaxIters(50);
+				opt.setIterationsPerOutput(10);
+				break;
+			case "humanFly":
+				optDesc = "fly stroke with human character";
+				opt.setMinStoppingCost(1);
+				opt.setMaxIters(50);
+				opt.setIterationsPerOutput(10);
 				break;
 			case "paddle":
-				log.info("Running optimization for paddle character...");
-				
-				SwimmerOptimization opt = new SwimmerOptimization();
-				
-				SwimFitnessFunctionA fitFun = new SwimFitnessFunctionA("paddle");
-				
-				double[] control = opt.optimize(fitFun);
-				
-				SwimmerOptimization.writeToCSV(control, "./controlData", "paddle");
-				
-				
+				optDesc = "paddle character";
+				opt.setMinStoppingCost(0.0000000001);
+				opt.setMaxIters(500);
+				opt.setIterationsPerOutput(50);
 				break;
 		}
 		
-		log.info("OPTIMIZATION COMPLETE");
+		final String HASHES = "###################";
+		
+		log.info(HASHES + "Running optimization for" + optDesc + "..." + HASHES);
+		
+		//Set cost function params
+		SwimFitnessFunctionA fitFun = new SwimFitnessFunctionA(charID);
+		
+		double[] control = opt.optimize(fitFun);
+		SwimmerOptimization.writeToCSV(control, "./controlData", charID);
+		
+		log.info(HASHES + "OPTIMIZATION COMPLETE FOR " + charID + HASHES);
 	}
 
 }

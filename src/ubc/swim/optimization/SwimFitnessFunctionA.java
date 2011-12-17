@@ -26,8 +26,8 @@ public class SwimFitnessFunctionA extends SwimFitnessFunction {
 	 * with specified identifier
 	 * @param charName
 	 */
-	public SwimFitnessFunctionA(String charName) {
-		this.charID = charName;
+	public SwimFitnessFunctionA(String charID) {
+		this.charID = charID;
 	}
 	
 	@Override

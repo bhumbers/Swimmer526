@@ -48,6 +48,9 @@ public class ScenarioLibrary {
 			case "humanCrawl":
 				character = new HumanChar(Stroke.CRAWL);
 				break;
+			case "humanFly":
+				character = new HumanChar(Stroke.FLY);
+				break;
 			case "paddle":
 				character = new PaddleChar();
 			default:

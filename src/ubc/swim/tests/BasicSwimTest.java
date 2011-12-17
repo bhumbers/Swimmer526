@@ -27,12 +27,12 @@
 package ubc.swim.tests;
 
 import java.util.Formatter;
+import java.util.List;
 
 import org.jbox2d.collision.shapes.PolygonShape;
 import org.jbox2d.common.Vec2;
 import org.jbox2d.dynamics.Body;
 import org.jbox2d.dynamics.BodyDef;
-import org.jbox2d.dynamics.joints.RevoluteJoint;
 
 import ubc.swim.gui.SwimSettings;
 import ubc.swim.optimization.SwimmerOptimization;
@@ -47,14 +47,16 @@ import ubc.swim.world.SwimCharacter;
  */
 public class BasicSwimTest extends SwimTest {
 	
-	private RevoluteJoint m_joint1;
 	private SwimCharacter mainChar;
+	private String nameSuffix = "";
 	
-	
-	public BasicSwimTest() {
+	public BasicSwimTest(String suffix, List<String> charIDs) {
 		super();
 		
-		charIDs.add("paddle");
+		this.nameSuffix = suffix;
+		
+		for (String charID : charIDs)
+			this.charIDs.add(charID);
 	}
 	
 	@Override
@@ -107,7 +109,6 @@ public class BasicSwimTest extends SwimTest {
 
 		//Add debug info
 		if (mainChar != null) {
-			addTextLine("Keys: (f) toggle friction, (m) toggle motor");
 			float swimSpeed = mainChar.getRootBody().getLinearVelocity().x;
 			float torque = mainChar.getMotors().get(0).getPrevTorque();
 			Formatter f = new Formatter();
@@ -117,18 +118,12 @@ public class BasicSwimTest extends SwimTest {
 
 	@Override
 	public void keyPressed(char argKeyChar, int argKeyCode) {
-		
-		switch(argKeyChar){
-			case 'm':
-				m_joint1.enableMotor(!m_joint1.isMotorEnabled());
-				getModel().getKeys()['m'] = false;
-				break;
-		}
+		//nothing for now
 	}
 
 	@Override
 	public String getTestName() {
-		return "Basic Swim Test";
+		return "Basic Swim Test: " + nameSuffix;
 	}
 
 }

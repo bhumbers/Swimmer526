@@ -19,6 +19,18 @@ import fr.inria.optimization.cmaes.CMAEvolutionStrategy;
  * @author Ben Humberston 
  */
 public class SwimmerOptimization {
+	protected int maxIters = 100;
+	protected double minStoppingCost = 1e-14;
+	protected int iterationsPerOutput = 150;
+	
+	/** Sets maximum number of CMA iterations used by this optimizer. */
+	public void setMaxIters(int val) { this.maxIters = val;}
+	
+	/** Sets minimum cost value that is reached before optimization stops (ie: the goal minimized cost is found). */
+	public void setMinStoppingCost(double val) { this.minStoppingCost = val;}
+	
+	/** Sets how many CMA iterations are run between each logging output of optimizer progress */
+	public void setIterationsPerOutput(int val) { this.iterationsPerOutput = val;}
 	
 	/**
 	 * Executes CMA control optimization using given function, returning 
@@ -35,8 +47,8 @@ public class SwimmerOptimization {
 		cma.setDimension(fitFun.getNumControlDimensions()); 
 		cma.setInitialX(0.05); // in each dimension, also setTypicalX can be used
 		cma.setInitialStandardDeviation(0.2); // also a mandatory setting 
-		cma.options.stopFitness = 1e-14;       // optional setting
-		cma.options.stopMaxIter = 250;
+		cma.options.stopFitness = minStoppingCost;       // optional setting
+		cma.options.stopMaxIter = maxIters;
 
 		// Initialize CMA and get fitness array
 		double[] fitness = cma.init();
@@ -64,11 +76,10 @@ public class SwimmerOptimization {
 
 			// Update output to console/files
 			cma.writeToDefaultFiles();
-			int outmod = 150;
 			//Print table headers and stats every so often
-			if (cma.getCountIter() % (15*outmod) == 1)
+			if (cma.getCountIter() % (15*iterationsPerOutput) == 1)
 				cma.printlnAnnotation(); 
-			if (cma.getCountIter() % outmod == 1)
+			if (cma.getCountIter() % iterationsPerOutput == 1)
 				cma.println(); 
 		}
 		

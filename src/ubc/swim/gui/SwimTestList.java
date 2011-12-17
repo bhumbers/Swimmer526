@@ -26,6 +26,8 @@
  */
 package ubc.swim.gui;
 
+import java.util.Arrays;
+
 import ubc.swim.tests.BasicSwimTest;
 import ubc.swim.tests.PaddleTest;
 
@@ -40,8 +42,10 @@ public class SwimTestList {
   
   public static void populateModel(SwimModel argModel){
       
-      argModel.addCategory("Basic");
-      argModel.addTest(new BasicSwimTest());
+	  argModel.addCategory("Basic");
+      argModel.addTest(new BasicSwimTest("Paddle", Arrays.asList("paddle")));
+      argModel.addTest(new BasicSwimTest("Human Crawl", Arrays.asList("humanCrawl")));
+      argModel.addTest(new BasicSwimTest("Human Fly", Arrays.asList("humanFly")));
       argModel.addTest(new PaddleTest());
   }
 }
