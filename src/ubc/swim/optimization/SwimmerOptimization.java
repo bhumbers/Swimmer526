@@ -1,5 +1,13 @@
 package ubc.swim.optimization;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.StringTokenizer;
+
 import fr.inria.optimization.cmaes.CMAEvolutionStrategy;
 
 /**
@@ -76,5 +84,72 @@ public class SwimmerOptimization {
 				+ " at evaluation " + cma.getBestEvaluationNumber());
 		
 		return cma.getBestX();
+	}
+	
+	/**
+	 * Writes given control values to a comma-separated value file with given path and name
+	 * (.csv extension will be automatically appended)
+	 * @param x
+	 * @param filePath location folder of file (no trailing "/")
+	 * @param fileName name of file (no .csv extension)
+	 */
+	public static void writeToCSV(double[] x, String filePath, String fileName) {
+		try
+		{
+		    FileWriter writer = new FileWriter(filePath + "/" + fileName + ".csv");
+		    
+		    for (double val : x) {
+		    	writer.append(Double.toString(val));
+		    	writer.append(",\n");
+		    }
+	 
+		    writer.flush();
+		    writer.close();
+		}
+		catch(IOException e)
+		{
+		     e.printStackTrace();
+		} 
+	}
+	
+	/**
+	 * Reads control values from a comma-separated value file with given path
+	 * and name and returns them in a double array (.csv extension will be
+	 * automatically appended)
+	 * 
+	 * @param filePath
+	 *            location folder of file (no trailing "/")
+	 * @param fileName
+	 *            name of file (no .csv extension)
+	 */
+	public static double[] readFromCSV(String filePath, String fileName) {
+		List<Double> loadedVals = new ArrayList<Double>();
+		
+		try
+		{
+			BufferedReader reader  = new BufferedReader(new FileReader(filePath + "/" + fileName + ".csv"));
+			String line = null;
+			
+			//Each line contains 1 control param (mainly for human readability)
+			while((line = reader.readLine()) != null)
+			{
+				StringTokenizer st = new StringTokenizer(line,",");
+				loadedVals.add(Double.parseDouble(st.nextToken()));
+			}
+			
+			reader.close();
+		}
+		catch(IOException e)
+		{
+		     e.printStackTrace();
+		}
+		
+		double[] x = new double[loadedVals.size()];
+		int numVals = loadedVals.size();
+		for (int i = 0; i < numVals; i++) {
+			double val = loadedVals.get(i);
+			x[i] = val;
+		}
+		return x;
 	}
 }

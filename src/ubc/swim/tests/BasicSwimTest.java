@@ -35,6 +35,7 @@ import org.jbox2d.dynamics.BodyDef;
 import org.jbox2d.dynamics.joints.RevoluteJoint;
 
 import ubc.swim.gui.SwimSettings;
+import ubc.swim.optimization.SwimmerOptimization;
 import ubc.swim.world.SwimCharacter;
 
 /**
@@ -85,6 +86,11 @@ public class BasicSwimTest extends SwimTest {
 //				control[i+5] = 0.7f;
 //				control[i+6] = 0.1f;
 //			}
+//
+//			//Testing IO
+//			SwimmerOptimization.writeToCSV(control, "./controlData", "blah");
+//			control = SwimmerOptimization.readFromCSV("./controlData", "blah");
+//			
 //			character.setControlParams(control);
 //		}
 		
