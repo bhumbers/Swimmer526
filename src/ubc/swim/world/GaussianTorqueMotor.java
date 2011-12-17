@@ -94,7 +94,8 @@ public class GaussianTorqueMotor extends TorqueMotor {
 		weights.set(funcNum, weight);
 		means.set(funcNum, mean);
 		
-		if (stdDev < MIN_STD_DEV) stdDev = MIN_STD_DEV;
+		if (stdDev < MIN_STD_DEV) 
+			stdDev = MIN_STD_DEV;
 		stdDevs.set(funcNum, stdDev);
 	}
 	

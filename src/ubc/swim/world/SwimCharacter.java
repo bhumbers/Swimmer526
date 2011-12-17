@@ -3,6 +3,7 @@ package ubc.swim.world;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.jbox2d.callbacks.DebugDraw;
 import org.jbox2d.common.Vec2;
 import org.jbox2d.dynamics.Body;
 import org.jbox2d.dynamics.World;
@@ -88,4 +89,10 @@ public abstract class SwimCharacter {
 	 * @return
 	 */
 	public abstract int getNumControlDimensions();
+	
+	/**
+	 * Renders debug visuals about this character to the screen.
+	 * @param debugDraw
+	 */
+	public abstract void debugDraw(DebugDraw debugDraw);
 }

@@ -51,6 +51,7 @@ public class SwimFitnessFunctionA extends SwimFitnessFunction {
 		SwimCharacter character = scenario.getCharacters().get(0); 
 		character.setControlParams(x);
 		Body rootBody = character.getRootBody();
+		float rootAngleOrig = rootBody.getAngle();
 		
 		float evaluation = 0.0f;
 		float maxRuntime = 5; //5 seconds
@@ -60,25 +61,32 @@ public class SwimFitnessFunctionA extends SwimFitnessFunction {
 		float hz = (float)settings.getSetting(SwimSettings.Hz).value;
 		float dt = hz > 0f ? 1f / hz : 0;
 		
+		float targetSpeed = 1.0f; // meters/second
+		
 		while (time < maxRuntime) {
-			float prevRootAng = rootBody.getAngle();
 			
 			scenario.step(settings, dt);
 			
 			//Minimize distance from target speed
-			evaluation += Math.abs(0.5f - rootBody.getLinearVelocity().x);
+//			evaluation += Math.abs(1.0f - rootBody.getLinearVelocity().x);
+			float targetDistanceAtTime = targetSpeed * time;
+			float targetDistanceError = Math.abs(targetDistanceAtTime - rootBody.getPosition().x);
+			evaluation += 1.0f * targetDistanceError;
 			
-			//TODO: REMOVE. testing optimization
-//			evaluation += 0.1f * (float)Math.abs(rootBody.getAngle() - prevRootAng);
+			//Minimize root angle rotation outside some threshold value
+			float rootAngleDeviation = (float)Math.abs(rootBody.getAngle() - rootAngleOrig);
+			float rootAngleDevThreshold = (float)Math.PI * 0.2f;
+			if (rootAngleDeviation > rootAngleDevThreshold)
+				evaluation += 1.0f * rootAngleDeviation;
 			
 			//TODO: update score based on:
 			// Minimize energy to velocity ratio
 			// minimize distance from target velocity?
-			// Minimize rotation of root body?
-			// minimize deviation from crawl/fly phase lock?
 			
 			time += dt;
 		}
+		
+//		evaluation += Math.abs((maxRuntime * 0.3f) - rootBody.getPosition().x);
 		
 		return evaluation;
 	}

@@ -37,7 +37,7 @@ public class SwimOptimizeMain {
 			case "humanFly":
 				optDesc = "fly stroke with human character";
 				opt.setMinStoppingCost(1);
-				opt.setMaxIters(50);
+				opt.setMaxIters(150);
 				opt.setIterationsPerOutput(10);
 				break;
 			case "paddle":
@@ -50,7 +50,7 @@ public class SwimOptimizeMain {
 		
 		final String HASHES = "###################";
 		
-		log.info(HASHES + "Running optimization for" + optDesc + "..." + HASHES);
+		log.info(HASHES + "Running optimization for " + optDesc + "..." + HASHES);
 		
 		//Set cost function params
 		SwimFitnessFunctionA fitFun = new SwimFitnessFunctionA(charID);

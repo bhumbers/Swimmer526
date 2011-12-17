@@ -2,6 +2,7 @@ package ubc.swim.world;
 
 import java.util.ArrayList;
 
+import org.jbox2d.callbacks.DebugDraw;
 import org.jbox2d.collision.shapes.PolygonShape;
 import org.jbox2d.common.Vec2;
 import org.jbox2d.dynamics.Body;
@@ -128,7 +129,7 @@ public class PaddleChar extends SwimCharacter {
 				int offset = j * NUM_PARAMS_PER_GAUSSIAN;
 				
 				float weight 	= (float) params[i + offset + 1]; //weight is used in range [0,1]
-				float stdDev 	= (float) params[i + offset + 3] * MAX_STROKE_PERIOD;
+				float stdDev 	= Math.abs((float) params[i + offset + 3] * MAX_STROKE_PERIOD);
 				float mean 		= (float) params[i + offset + 2] * MAX_STROKE_PERIOD;
 
 				motor.setGaussianParams(j, weight, mean, stdDev);
@@ -146,5 +147,10 @@ public class PaddleChar extends SwimCharacter {
 		//Apply each control torque
 		for (TorqueMotor motor : motors) 
 			motor.applyTorque(runtime);
+	}
+	
+	@Override
+	public void debugDraw(DebugDraw debugDraw) {
+		
 	}
 }

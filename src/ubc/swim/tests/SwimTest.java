@@ -58,6 +58,7 @@ import ubc.swim.dynamics.controllers.DynamicsController;
 import ubc.swim.gui.ContactPoint;
 import ubc.swim.gui.SwimModel;
 import ubc.swim.gui.SwimSettings;
+import ubc.swim.world.SwimCharacter;
 import ubc.swim.world.scenario.Scenario;
 import ubc.swim.world.scenario.ScenarioLibrary;
 
@@ -569,6 +570,11 @@ public abstract class SwimTest implements ContactListener {
 		//Draw controller debug info
 		for (DynamicsController controller : scenario.getDynamicsControllers()) {
 			controller.draw(model.getDebugDraw(), settings);
+		}
+		
+		//Draw character debug info
+		for (SwimCharacter character : scenario.getCharacters()) {
+			character.debugDraw(model.getDebugDraw());
 		}
 	}
 

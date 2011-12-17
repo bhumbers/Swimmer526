@@ -2,16 +2,22 @@ package ubc.swim.world;
 
 import java.util.ArrayList;
 
+import org.jbox2d.callbacks.DebugDraw;
 import org.jbox2d.collision.shapes.PolygonShape;
+import org.jbox2d.common.Color3f;
+import org.jbox2d.common.Settings;
+import org.jbox2d.common.Transform;
 import org.jbox2d.common.Vec2;
 import org.jbox2d.dynamics.Body;
 import org.jbox2d.dynamics.BodyDef;
 import org.jbox2d.dynamics.BodyType;
 import org.jbox2d.dynamics.Filter;
+import org.jbox2d.dynamics.Fixture;
 import org.jbox2d.dynamics.World;
 import org.jbox2d.dynamics.joints.Joint;
 import org.jbox2d.dynamics.joints.RevoluteJoint;
 import org.jbox2d.dynamics.joints.RevoluteJointDef;
+import org.jbox2d.pooling.arrays.Vec2Array;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -59,11 +65,18 @@ public class HumanChar extends SwimCharacter {
 	
 	protected Stroke stroke;
 	
+	protected ArrayList<Body> rightBodies;
+	protected ArrayList<Body> leftBodies;
+	
 	protected ArrayList<Joint> joints;
-	protected ArrayList<Joint> shoulderJoints;
-	protected ArrayList<Joint> elbowJoints;
-	protected ArrayList<Joint> hipJoints;
-	protected ArrayList<Joint> kneeJoints;
+	protected ArrayList<Joint> leftJoints;
+	protected ArrayList<Joint> rightJoints;
+	
+	//Motors for arms and legs, split by left and right sides
+	protected ArrayList<TorqueMotor> rightMotors;
+	protected ArrayList<TorqueMotor> leftMotors;
+	
+	private final Vec2Array tlvertices = new Vec2Array(); //used for debug drawing
 	
 	/**
 	 * Create a new human character with given stroke as goal
@@ -74,13 +87,16 @@ public class HumanChar extends SwimCharacter {
 		
 		this.stroke = stroke;
 	
+		rightBodies = new ArrayList<Body>();
+		leftBodies = new ArrayList<Body>();
+		
 		joints = new ArrayList<Joint>();
 		
-		shoulderJoints = new ArrayList<Joint>();
-		elbowJoints = new ArrayList<Joint>();
+		leftJoints = new ArrayList<Joint>();
+		rightJoints = new ArrayList<Joint>();
 		
-		hipJoints = new ArrayList<Joint>();
-		kneeJoints = new ArrayList<Joint>();
+		rightMotors = new ArrayList<TorqueMotor>();
+		leftMotors = new ArrayList<TorqueMotor>();
 	}
 
 	@Override
@@ -125,20 +141,31 @@ public class HumanChar extends SwimCharacter {
 			RevoluteJointDef rjd = new RevoluteJointDef();
 			rjd.initialize(torso, head, new Vec2(torsoHeight/2, 0.0f));
 			rjd.enableLimit = true;
-			rjd.upperAngle = (float)Math.PI/6;
-			rjd.lowerAngle = (float)-Math.PI/2 * 0.8f;
-			joints.add(world.createJoint(rjd));
+			rjd.upperAngle = (float)Math.PI/10;
+			rjd.lowerAngle = (float)-Math.PI/10;
+			Joint neckJoint = (world.createJoint(rjd));
+			joints.add(neckJoint);
 			
 			bodies.add(head);
+			
+			//Add neck motor
+			RevoluteJoint rjoint = (RevoluteJoint) neckJoint;
+			GaussianTorqueMotor motor = new GaussianTorqueMotor(rjoint.getBodyA(), rjoint.getBodyB(), MAX_DEFAULT_TORQUE, NUM_GAUSSIANS_PER_MOTOR);
+			motors.add(motor);
 		}
 
-		//Create arms
-		//Note that we start them either in phase or 180 degrees out of phase with each other,
-		//depending on whether we'll be doing crawl or butter stroke
+		//Create arms and legs for left and right sides
+		//NOTE: bit of a mess and could be simplified a good deal, but it works...
 		Vec2 armJointPoint = new Vec2(torsoHeight/2, 0.0f);
+		Vec2 legJointPoint = new Vec2(-torsoHeight/2, 0.0f);
+		ArrayList<Joint> sideJoints = null;
+		ArrayList<TorqueMotor> sideMotors=  null;
 		for (int i = 0; i < 2; i++) {
 			PolygonShape shape = new PolygonShape();
 			shape.setAsBox(upperArmLen/2, upperArmWidth/2);
+			
+			sideJoints = (i == 0) ? rightJoints : leftJoints;
+			sideMotors = (i == 0) ? rightMotors : leftMotors;
 	
 			//Upper arm
 			BodyDef bd = new BodyDef();
@@ -160,25 +187,29 @@ public class HumanChar extends SwimCharacter {
 			
 			RevoluteJointDef rjd = new RevoluteJointDef();
 			rjd.initialize(torso, upperArm, new Vec2(armJointPoint.x, armJointPoint.y));
-//			rjd.enableMotor = true;
-//			rjd.motorSpeed = -(float)Math.PI;
-//			rjd.maxMotorTorque = 1000;
-			shoulderJoints.add(world.createJoint(rjd));
+			sideJoints.add(world.createJoint(rjd));
 			
 			bodies.add(upperArm);
 			
 			//Lower Arm
+			shape = new PolygonShape();
+			shape.setAsBox(lowerArmLen/2, lowerArmWidth/2);
 			bd = new BodyDef();
 			bd.type = BodyType.DYNAMIC;
 			//Start second arm lifted above head for crawl
 			float lowerArmOffset = 0, lowerArmRot = 0;
+			float minElbowAngle = 0, maxElbowAngle = 0;
 			if (i == 1 && stroke == Stroke.CRAWL) {
 				lowerArmOffset = -upperArmLen/2 - lowerArmLen/2;
 				lowerArmRot = 0;
+				minElbowAngle = -(float)Math.PI * 0.9f;
+				maxElbowAngle = (float)Math.PI * 0.9f;
 			}
 			else {
 				lowerArmOffset = upperArmLen/2 + lowerArmLen/2;
 				lowerArmRot = (float)Math.PI;
+				minElbowAngle = (float)-Math.PI * 0.9f;
+				maxElbowAngle = (float)Math.PI * 0.9f;
 			}
 			bd.position.set(upperArm.getPosition().x + lowerArmOffset, 0.0f);
 			bd.angle = lowerArmRot;
@@ -187,25 +218,17 @@ public class HumanChar extends SwimCharacter {
 			
 			rjd = new RevoluteJointDef();
 			rjd.enableLimit = true;
-			rjd.upperAngle = (float)0;
-			rjd.lowerAngle = (float)-Math.PI * 0.9f;
+			rjd.upperAngle = maxElbowAngle;
+			rjd.lowerAngle = minElbowAngle;
 			rjd.initialize(upperArm, lowerArm, new Vec2(0.5f * (upperArm.getPosition().x + lowerArm.getPosition().x), 0.5f * (upperArm.getPosition().y + lowerArm.getPosition().y)));
-			elbowJoints.add(world.createJoint(rjd));
+			sideJoints.add(world.createJoint(rjd));
 			
 			bodies.add(lowerArm);
-		}
-		
-		joints.addAll(shoulderJoints);
-		joints.addAll(elbowJoints);
-		
-		//Create legs
-		Vec2 legJointPoint = new Vec2(-torsoHeight/2, 0.0f);
-		for (int i = 0; i < 2; i++) {
-			PolygonShape shape = new PolygonShape();
-			shape.setAsBox(upperLegLen/2, upperLegWidth/2);
-	
+			
 			//Upper leg
-			BodyDef bd = new BodyDef();
+			shape = new PolygonShape();
+			shape.setAsBox(upperLegLen/2, upperLegWidth/2);
+			bd = new BodyDef();
 			bd.type = BodyType.DYNAMIC;
 			//TODO: start in/out of phase for fly/crawl (constant for now)
 			float upperLegOffset = (i == 1 && stroke == Stroke.CRAWL) ? -upperLegLen/2 : -upperLegLen/2;
@@ -213,16 +236,18 @@ public class HumanChar extends SwimCharacter {
 			Body upperLeg = world.createBody(bd);
 			upperLeg.createFixture(shape, defaultDensity);
 			
-			RevoluteJointDef rjd = new RevoluteJointDef();
+			rjd = new RevoluteJointDef();
 			rjd.enableLimit = true;
 			rjd.upperAngle = (float)Math.PI / 4;
 			rjd.lowerAngle = (float)-Math.PI / 4;
 			rjd.initialize(torso, upperLeg, new Vec2(legJointPoint.x, legJointPoint.y));
-			hipJoints.add(world.createJoint(rjd));
+			sideJoints.add(world.createJoint(rjd));
 			
 			bodies.add(upperLeg);
 			
 			//Lower leg
+			shape = new PolygonShape();
+			shape.setAsBox(lowerLegLen/2, lowerLegWidth/2);
 			bd = new BodyDef();
 			bd.type = BodyType.DYNAMIC;
 			//TODO: lower leg offset that varies by stroke (constant for now)
@@ -236,13 +261,29 @@ public class HumanChar extends SwimCharacter {
 			rjd.upperAngle = (float)0;
 			rjd.lowerAngle = (float)-Math.PI * 0.9f;
 			rjd.initialize(upperLeg, lowerLeg, new Vec2(0.5f * (upperLeg.getPosition().x + lowerLeg.getPosition().x), 0.5f * (upperLeg.getPosition().y + lowerLeg.getPosition().y)));
-			kneeJoints.add(world.createJoint(rjd));
+			sideJoints.add(world.createJoint(rjd));
 			
 			bodies.add(lowerLeg);
+			
+			if (i == 0) { 
+				rightBodies.add(upperArm); 	rightBodies.add(lowerArm);
+				rightBodies.add(upperLeg); 	rightBodies.add(lowerLeg); 
+			}
+			else  { 
+				leftBodies.add(upperArm); 	leftBodies.add(lowerArm);
+				leftBodies.add(upperLeg); 	leftBodies.add(lowerLeg);
+			}
+			
+			joints.addAll(sideJoints);
+			
+			//Add one motor for each appendage joint on this side
+			for (Joint joint : sideJoints) {
+				RevoluteJoint rjoint = (RevoluteJoint) joint;
+				GaussianTorqueMotor motor = new GaussianTorqueMotor(rjoint.getBodyA(), rjoint.getBodyB(), MAX_DEFAULT_TORQUE, NUM_GAUSSIANS_PER_MOTOR);
+				motors.add(motor);
+				sideMotors.add(motor);
+			}
 		}
-		
-		joints.addAll(hipJoints);
-		joints.addAll(kneeJoints);
 		
 		//Set all bodies to be non-colliding with each other
 		Filter filter = new Filter();
@@ -250,13 +291,6 @@ public class HumanChar extends SwimCharacter {
 		for (int i = 0; i < bodies.size(); i++) {
 			Body body = bodies.get(i);
 			body.getFixtureList().setFilterData(filter);
-		}
-		
-		//Add motor for each joint
-		for (Joint joint : joints) {
-			RevoluteJoint rjoint = (RevoluteJoint) joint;
-			GaussianTorqueMotor motor = new GaussianTorqueMotor(rjoint.getBodyA(), rjoint.getBodyB(), MAX_DEFAULT_TORQUE, NUM_GAUSSIANS_PER_MOTOR);
-			motors.add(motor);
 		}
 	}
 	
@@ -267,27 +301,38 @@ public class HumanChar extends SwimCharacter {
 			assert(false);
 		}
 		
+		int leftSideMotorStartIdx = 1 + (motors.size() - 1) / 2;
+		
 		//Forward each group of params to the corresponding motor
 		//NOTE: 
 		//    -For some params, we map the original [0,1] range of each parameter into the final control ranges here
 		//    -For arms and legs, controls are same between left and right side, except for a possible phase shift
-		int motorIdx = 0;
-		for (int i = 0; i < params.length; i += NUM_PARAMS_PER_MOTOR) {
+		for (int motorIdx = 0; motorIdx < motors.size(); motorIdx++) {
 			GaussianTorqueMotor motor = (GaussianTorqueMotor)motors.get(motorIdx);
 			
-			boolean isLeftSideControl = (motorIdx > 1 && motorIdx % 2 == 0);
+			boolean isLeftSideControl = (motorIdx >= leftSideMotorStartIdx);
 			
-			float period = (float) params[i] * MAX_STROKE_PERIOD;
+			int paramIdx = motorIdx * NUM_PARAMS_PER_MOTOR;
+			//Reuse same params from right side control (match to right-side params)
+			if (isLeftSideControl)
+				paramIdx -= rightMotors.size() * NUM_PARAMS_PER_MOTOR;
+			
+			float period = (float) params[paramIdx] * MAX_STROKE_PERIOD;
 			period = motor.setPeriod(period);
 			
 			//Update params of each Gaussian basis function
 			for (int j = 0; j < NUM_GAUSSIANS_PER_MOTOR; j++) {
 				int offset = j * NUM_PARAMS_PER_GAUSSIAN;
 				
-				float weight 	= (float) params[i + offset + 1]; //weight is used in range [0,1]
-				float stdDev 	= (float) params[i + offset + 3] * MAX_STROKE_PERIOD;
+				float weight 	= (float) params[paramIdx + offset + 1]; //weight is used in range [0,1]
+				//left arm and leg use inverted torques from right arm and leg
+//				if (isLeftSideControl)
+//					weight *= -1;
 				
-				float mean 		= (float) params[i + offset + 2] * MAX_STROKE_PERIOD;
+				//Use absolute value for std dev (CMA may pick negative param vals)
+				float stdDev 	= Math.abs((float) params[paramIdx + offset + 3] * MAX_STROKE_PERIOD);
+				
+				float mean 		= (float) params[paramIdx + offset + 2] * MAX_STROKE_PERIOD;
 				//Based on the stroke, select different left-right offsets for arms and legs
 				switch (stroke) {
 					case CRAWL:
@@ -304,8 +349,6 @@ public class HumanChar extends SwimCharacter {
 				
 				motor.setGaussianParams(j, weight, mean, stdDev);
 			}
-			
-			motorIdx++;
 		}
 		
 	}
@@ -317,5 +360,38 @@ public class HumanChar extends SwimCharacter {
 		//Apply each control torque
 		for (TorqueMotor motor : motors) 
 			motor.applyTorque(runtime);
+	}
+	
+	@Override
+	public void debugDraw(DebugDraw debugDraw) {
+		Transform transform = new Transform();
+		Color3f color = new Color3f();
+		
+		
+		//Draw left/right coloring (note: left is drawn below right side... it's on the character side *away* from the viewer)
+		for (Body body : leftBodies) {
+			transform.set(body.getTransform());
+			color.set(0.2f, 0.9f, 0.2f);
+			for (Fixture fixture = body.getFixtureList(); fixture != null; fixture = fixture.getNext())
+				drawPolygon((PolygonShape) fixture.getShape(), transform, color, debugDraw);
+		}
+		for (Body body : rightBodies) {
+			transform.set(body.getTransform());
+			color.set(0.9f, 0.2f, 0.2f);
+			for (Fixture fixture = body.getFixtureList(); fixture != null; fixture = fixture.getNext())
+				drawPolygon((PolygonShape) fixture.getShape(), transform, color, debugDraw);
+		}
+	}
+	
+	protected void drawPolygon(PolygonShape shape, Transform transform, Color3f color, DebugDraw debugDraw) {
+		int vertexCount = shape.m_vertexCount;
+		assert (vertexCount <= Settings.maxPolygonVertices);
+		Vec2[] vertices = tlvertices.get(Settings.maxPolygonVertices);
+		
+		for (int i = 0; i < vertexCount; ++i) {
+			Transform.mulToOut(transform, shape.m_vertices[i], vertices[i]);
+		}
+		
+		debugDraw.drawSolidPolygon(vertices, vertexCount, color);
 	}
 }
