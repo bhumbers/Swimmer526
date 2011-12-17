@@ -73,20 +73,20 @@ public class BasicSwimTest extends SwimTest {
 			ground.createFixture(shape, 0.0f);
 		}
 		
-		//TODO: remove. Testing controls
-		for (SwimCharacter character : scenario.getCharacters()) {
-			double[] control = new double[character.getNumControlDimensions()];
-			for (int i = 0; i < 7; i += 7) {
-				control[i] = 1.0f;
-				control[i+1] = 1.0f;
-				control[i+2] = 0.3f;
-				control[i+3] = 0.1f;
-				control[i+4] = -1.0f;
-				control[i+5] = 0.7f;
-				control[i+6] = 0.1f;
-			}
-			character.setControlParams(control);
-		}
+//		//TODO: remove. Testing controls
+//		for (SwimCharacter character : scenario.getCharacters()) {
+//			double[] control = new double[character.getNumControlDimensions()];
+//			for (int i = 0; i < 7; i += 7) {
+//				control[i] = 1.0f;
+//				control[i+1] = 1.0f;
+//				control[i+2] = 1.0f;
+//				control[i+3] = 0.1f;
+//				control[i+4] = 1.0f;
+//				control[i+5] = 0.7f;
+//				control[i+6] = 0.1f;
+//			}
+//			character.setControlParams(control);
+//		}
 		
 		mainChar = scenario.getCharacters().get(0);
 	}
