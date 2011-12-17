@@ -26,25 +26,34 @@ public class ScenarioLibrary {
 		
 		//Add list of characters to the scene
 		for (String charID : charIDs) {
-			SwimCharacter character = null;
-			
-			switch (charID) {
-				case "humanCrawl":
-					character = new HumanChar(Stroke.CRAWL);
-					character.initialize(scenario.getWorld());
-					character.moveTo(0, 10);
-					break;
-				case "paddle":
-					character = new PaddleChar();
-					character.initialize(scenario.getWorld());
-					character.moveTo(0, 10);
-				default:
-					break;
-			}
+			SwimCharacter character = getCharacterByID(charID);
+			character.initialize(scenario.getWorld());
+			character.moveTo(0, 10);
 			
 			scenario.addCharacter(character);
 		}
 		
 		return scenario;
+	}
+	
+	/**
+	 * Returns an uninitialized swimmer character referenced by given ID
+	 * @param charID
+	 * @return
+	 */
+	public static SwimCharacter getCharacterByID(String charID) {
+		SwimCharacter character = null;
+		
+		switch (charID) {
+			case "humanCrawl":
+				character = new HumanChar(Stroke.CRAWL);
+				break;
+			case "paddle":
+				character = new PaddleChar();
+			default:
+				break;
+		}
+		
+		return character;
 	}
 }

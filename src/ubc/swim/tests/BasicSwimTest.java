@@ -94,7 +94,11 @@ public class BasicSwimTest extends SwimTest {
 //			character.setControlParams(control);
 //		}
 		
-		mainChar = scenario.getCharacters().get(0);
+		//Apply optimized control strategy
+		if (scenario.getCharacters().size() > 0) {
+			mainChar = scenario.getCharacters().get(0);
+			mainChar.setControlParams(SwimmerOptimization.readFromCSV("./controlData", charIDs.get(0)));
+		}
 	}
 	
 	@Override

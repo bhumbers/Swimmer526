@@ -32,10 +32,11 @@ public class SwimmerOptimization {
 		cma.readProperties(); 
 		
 		// Set custom properties
-		cma.setDimension(fitFun.getCharacter().getNumControlDimensions()); 
+		cma.setDimension(fitFun.getNumControlDimensions()); 
 		cma.setInitialX(0.05); // in each dimension, also setTypicalX can be used
 		cma.setInitialStandardDeviation(0.2); // also a mandatory setting 
 		cma.options.stopFitness = 1e-14;       // optional setting
+		cma.options.stopMaxIter = 250;
 
 		// Initialize CMA and get fitness array
 		double[] fitness = cma.init();

@@ -18,7 +18,7 @@ import ubc.swim.world.scenario.ScenarioLibrary;
  */
 public class SwimFitnessFunctionA extends SwimFitnessFunction {
 	
-	protected String charName;
+	protected String charID;
 	protected Scenario scenario;
 	
 	/**
@@ -27,7 +27,14 @@ public class SwimFitnessFunctionA extends SwimFitnessFunction {
 	 * @param charName
 	 */
 	public SwimFitnessFunctionA(String charName) {
-		this.charName = charName;
+		this.charID = charName;
+	}
+	
+	@Override
+	public int getNumControlDimensions() {
+		//Not the most efficient solution, but oh well...
+		SwimCharacter character = ScenarioLibrary.getCharacterByID(charID);
+		return character.getNumControlDimensions();
 	}
 	
 	/**
@@ -38,7 +45,7 @@ public class SwimFitnessFunctionA extends SwimFitnessFunction {
 	public double valueOf(double[] x) {
 		//For now, just recreate complete scenario (don't try to reset)
 		List<String> charIDs = new ArrayList<String>();
-		charIDs.add(charName);
+		charIDs.add(charID);
 		scenario = ScenarioLibrary.getBasicScenario(charIDs);
 		
 		SwimCharacter character = scenario.getCharacters().get(0); 
@@ -58,8 +65,11 @@ public class SwimFitnessFunctionA extends SwimFitnessFunction {
 			
 			scenario.step(settings, dt);
 			
+			//Minimize distance from target speed
+			evaluation += Math.abs(0.5f - rootBody.getLinearVelocity().x);
+			
 			//TODO: REMOVE. testing optimization
-			evaluation += 0.1f * (float)Math.abs(rootBody.getAngle() - prevRootAng);
+//			evaluation += 0.1f * (float)Math.abs(rootBody.getAngle() - prevRootAng);
 			
 			//TODO: update score based on:
 			// Minimize energy to velocity ratio

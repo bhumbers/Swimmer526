@@ -29,6 +29,10 @@ public class HumanChar extends SwimCharacter {
 	protected static final int NUM_PARAMS_PER_GAUSSIAN = 3;
 	protected static final int NUM_PARAMS_PER_MOTOR = 1 + NUM_PARAMS_PER_GAUSSIAN * NUM_GAUSSIANS_PER_MOTOR; //+1 for period value
 	
+	//Hard-coded, but data-driven solution is too time consuming
+	//1 motor for head, 2 for arms, 2 for legs (arm & leg controls are mirrored between left & right sides)
+	protected static final int NUM_CONTROL_DIMENSIONS = 5 * (1 + (NUM_PARAMS_PER_GAUSSIAN * NUM_GAUSSIANS_PER_MOTOR));
+	
 	protected static final int MAX_STROKE_PERIOD = 5; //seconds
 	protected static final float MAX_DEFAULT_TORQUE = 100; //N-m
 	
@@ -78,12 +82,10 @@ public class HumanChar extends SwimCharacter {
 		hipJoints = new ArrayList<Joint>();
 		kneeJoints = new ArrayList<Joint>();
 	}
-	
+
 	@Override
 	public int getNumControlDimensions() { 
-		//1 for head, the rest for limbs
-		int numDOF = (1 + (motors.size() - 1) / 2) * (1 + (NUM_PARAMS_PER_GAUSSIAN * NUM_GAUSSIANS_PER_MOTOR));
-		return numDOF;
+		return NUM_CONTROL_DIMENSIONS;
 	}
 	
 	@Override

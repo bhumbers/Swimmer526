@@ -23,5 +23,11 @@ public abstract class SwimFitnessFunction implements IObjectiveFunction {
 	 * Returns swimmer character used in this function
 	 */
 	public ubc.swim.world.SwimCharacter getCharacter() { return character;}
+	
+	/**
+	 * Returns dimensionality of control used by character in this fitness function
+	 * @return
+	 */
+	public abstract int getNumControlDimensions();
 
 }
