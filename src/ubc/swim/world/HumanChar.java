@@ -21,7 +21,8 @@ import ubc.swim.gui.SwimSettings;
  * @author Ben Humberston
  *
  */
-public class HumanChar extends Character {
+public class HumanChar extends SwimCharacter {
+	protected static final int NUM_GAUSSIANS_PER_MOTOR = 2;
 	
 	public enum Stroke {
 		CRAWL,
@@ -46,10 +47,13 @@ public class HumanChar extends Character {
 	
 	protected Stroke stroke;
 	
+	protected ArrayList<Joint> joints;
 	protected ArrayList<Joint> shoulderJoints;
 	protected ArrayList<Joint> elbowJoints;
 	protected ArrayList<Joint> hipJoints;
 	protected ArrayList<Joint> kneeJoints;
+	
+	protected ArrayList<TorqueMotor> motors;
 	
 	/**
 	 * Create a new human character with given stroke as goal
@@ -60,13 +64,19 @@ public class HumanChar extends Character {
 		
 		this.stroke = stroke;
 	
+		joints = new ArrayList<Joint>();
+		
 		shoulderJoints = new ArrayList<Joint>();
 		elbowJoints = new ArrayList<Joint>();
 		
 		hipJoints = new ArrayList<Joint>();
 		kneeJoints = new ArrayList<Joint>();
+		
+		motors = new ArrayList<TorqueMotor>();
 	}
 	
+	@Override
+	public int getNumControlDimensions() { return 4; }
 	
 	@Override
 	public void initialize(World world) {
@@ -107,7 +117,7 @@ public class HumanChar extends Character {
 			rjd.enableLimit = true;
 			rjd.upperAngle = (float)Math.PI/6;
 			rjd.lowerAngle = (float)-Math.PI/2 * 0.8f;
-			world.createJoint(rjd);
+			joints.add(world.createJoint(rjd));
 			
 			bodies.add(head);
 		}
@@ -225,33 +235,52 @@ public class HumanChar extends Character {
 			Body body = bodies.get(i);
 			body.getFixtureList().setFilterData(filter);
 		}
+		
+		joints.addAll(shoulderJoints);
+		joints.addAll(elbowJoints);
+		joints.addAll(hipJoints);
+		joints.addAll(kneeJoints);
+		
+		//Add motor for each joint
+		for (Joint joint : joints) {
+			RevoluteJoint rjoint = (RevoluteJoint) joint;
+			GaussianTorqueMotor motor = new GaussianTorqueMotor(rjoint.getBodyA(), rjoint.getBodyB(), NUM_GAUSSIANS_PER_MOTOR);
+			motors.add(motor);
+		}
+	}
+	
+	@Override
+	public void setControlParams(double[] params) {
+		//Forward each group of params to the corresponding motor
+		int motorIdx = 0;
+		int numGaussianParams = 3;
+		int inc = 1 + numGaussianParams * NUM_GAUSSIANS_PER_MOTOR;
+		for (int i = 0; i < params.length; i += inc) {
+			GaussianTorqueMotor motor = (GaussianTorqueMotor)motors.get(motorIdx);
+			
+			float period = (float) params[i];
+			motor.setPeriod(period);
+			
+			//Update params of each Gaussian basis function
+			for (int j = 0; j < NUM_GAUSSIANS_PER_MOTOR; j++) {
+				int offset = j * numGaussianParams;
+				float weight 	= (float) params[i + offset + 1];
+				float mean 		= (float) params[i + offset + 2];
+				float stdDev 	= (float) params[i + offset + 3];
+				motor.setGaussianParams(j, weight, mean, stdDev);
+			}
+			
+			motorIdx++;
+		}
+		
 	}
 	
 	@Override
 	public void step(SwimSettings settings, float dt, float runtime) {
 		if (dt == 0) return;
 		
-		//TODO: use control params. Just debugging for now
-		Body torso = null;
-		float torsoImpulse = 0.0f;
-		for (int i = 0; i < shoulderJoints.size(); i++) {
-			RevoluteJoint shoulderJoint = (RevoluteJoint)shoulderJoints.get(i);
-			torso = shoulderJoint.getBodyA();
-			Body upperArm = shoulderJoint.getBodyB();			
-			
-			float targetAngVel = -2 * (float)Math.PI;
-			float errorAngVel = (upperArm.m_angularVelocity - torso.m_angularVelocity) - targetAngVel;
-			float impulse = 8 * shoulderJoint.m_motorMass * (-errorAngVel);
-			
-			float maxImpulse = dt * 30;
-			impulse = MathUtils.clamp(impulse, -maxImpulse, maxImpulse);
-			
-			//TODO: apply a torque, not a direct impulse
-			torsoImpulse -= torso.m_invI * impulse;
-			upperArm.m_angularVelocity += upperArm.m_invI * impulse;
-		}
-		//Modify torso ang vel afterward... doing it during the loop causes order-of-application of forces to blow things up
-		if (torso != null)
-			torso.m_angularVelocity += torsoImpulse;
+		//Apply each control torque
+		for (TorqueMotor motor : motors) 
+			motor.applyTorque(runtime);
 	}
 }

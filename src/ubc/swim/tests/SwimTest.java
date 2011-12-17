@@ -58,6 +58,8 @@ import ubc.swim.dynamics.controllers.DynamicsController;
 import ubc.swim.gui.ContactPoint;
 import ubc.swim.gui.SwimModel;
 import ubc.swim.gui.SwimSettings;
+import ubc.swim.world.scenario.Scenario;
+import ubc.swim.world.scenario.ScenarioLibrary;
 
 /**
  * A single test world for the swimmer app; modeled on org.jbox2d.testbed.framework.TestbedTest by Daniel Murphy
@@ -81,13 +83,10 @@ public abstract class SwimTest implements ContactListener {
 			points[i] = new ContactPoint();
 		}
 	}
-
-	protected World world;
 	
 	protected float runtime; //total simulated time in world since last reset
 	
-	//Controllers which affect dynamics in this test
-	protected ArrayList<DynamicsController> dynControllers;
+	protected Scenario scenario;
 	
 	private Body groundBody;
 	private MouseJoint mouseJoint;
@@ -119,10 +118,13 @@ public abstract class SwimTest implements ContactListener {
 	private boolean dialogOnSaveLoadErrors = true;
 
 	private boolean resetPending = false;
+	
+	/** List of IDs for characters that appear in this test */
+	protected ArrayList<String> charIDs;
 
 	public SwimTest() {
 		inputQueue = new LinkedList<QueueItem>();
-		dynControllers= new ArrayList<DynamicsController>();
+		charIDs = new ArrayList<String>();
 	}
 
 	public void init(SwimModel argModel) {
@@ -140,29 +142,23 @@ public abstract class SwimTest implements ContactListener {
 				}
 			}
 		};
-		
-		dynControllers.clear();
+		 
+		scenario = ScenarioLibrary.getBasicScenario(charIDs);
 
-		Vec2 gravity = new Vec2(0, -10f);
-		world = new World(gravity, true);
 		bomb = null;
 		mouseJoint = null;
 		runtime = 0.0f;
 
 		BodyDef bodyDef = new BodyDef();
-		groundBody = world.createBody(bodyDef);
-
-		init(world, false);
-	}
-
-	public void init(World world, boolean deserialized) {
+		groundBody = getWorld().createBody(bodyDef);
+		
 		pointCount = 0;
 		stepCount = 0;
 		bombSpawning = false;
 
-		world.setDestructionListener(destructionListener);
-		world.setContactListener(this);
-		world.setDebugDraw(model.getDebugDraw());
+		getWorld().setDestructionListener(destructionListener);
+		getWorld().setContactListener(this);
+		getWorld().setDebugDraw(model.getDebugDraw());
 
 		if (hasCachedCamera) {
 			setCamera(cachedCameraPos, cachedCameraScale);
@@ -171,15 +167,7 @@ public abstract class SwimTest implements ContactListener {
 		}
 		setTitle(getTestName());
 
-		initTest(deserialized);
-	}
-	
-	/**
-	 * Adds a world dynamics controller to this test
-	 * @param controller
-	 */
-	public void addController(DynamicsController controller) {
-		dynControllers.add(controller);
+		initTest();
 	}
 
 	/**
@@ -188,7 +176,7 @@ public abstract class SwimTest implements ContactListener {
 	 * @return
 	 */
 	public World getWorld() {
-		return world;
+		return scenario.getWorld();
 	}
 
 	/**
@@ -343,13 +331,9 @@ public abstract class SwimTest implements ContactListener {
 	}
 
 	/**
-	 * Initializes the current test
-	 * 
-	 * @param deserialized
-	 *            if the test was deserialized from a file. If so, all physics
-	 *            objects were already added.
+	 * Initializes the current test. Override for test-specific setup
 	 */
-	public abstract void initTest(boolean deserialized);
+	public abstract void initTest();
 
 	/**
 	 * The name of the test
@@ -467,23 +451,14 @@ public abstract class SwimTest implements ContactListener {
 				: 0;
 		model.getDebugDraw().setFlags(flags);
 
-		world.setWarmStarting(settings
+		getWorld().setWarmStarting(settings
 				.getSetting(SwimSettings.WarmStarting).enabled);
-		world.setContinuousPhysics(settings
+		getWorld().setContinuousPhysics(settings
 				.getSetting(SwimSettings.ContinuousCollision).enabled);
 
 		pointCount = 0;
 		
-		//Apply controllers
-		for (DynamicsController controller : dynControllers) {
-			controller.step(settings);
-		}
-		
-		runtime += dt;
-
-		world.step(dt,
-				settings.getSetting(SwimSettings.VelocityIterations).getIntValue(),
-				settings.getSetting(SwimSettings.PositionIterations).getIntValue());
+		scenario.step(settings, dt);
 		
 		if (drawingEnabled)
 			debugDraw(settings);
@@ -496,6 +471,8 @@ public abstract class SwimTest implements ContactListener {
 	public void debugDraw(SwimSettings settings) {
 		float hz = (float)settings.getSetting(SwimSettings.Hz).value;
 		float timeStep = hz > 0f ? 1f / hz : 0;
+		
+		World world = getWorld();
 		
 		world.drawDebugData();
 
@@ -591,7 +568,7 @@ public abstract class SwimTest implements ContactListener {
 		}
 		
 		//Draw controller debug info
-		for (DynamicsController controller : dynControllers) {
+		for (DynamicsController controller : scenario.getDynamicsControllers()) {
 			controller.draw(model.getDebugDraw(), settings);
 		}
 	}
@@ -671,7 +648,7 @@ public abstract class SwimTest implements ContactListener {
 		queryAABB.upperBound.set(p.x + .001f, p.y + .001f);
 		callback.point.set(p);
 		callback.fixture = null;
-		world.queryAABB(callback, queryAABB);
+		getWorld().queryAABB(callback, queryAABB);
 
 		//Swap between dynamic and static
 		if (callback.fixture != null) {
@@ -690,7 +667,7 @@ public abstract class SwimTest implements ContactListener {
 	 */
 	public void mouseUp(Vec2 p) {
 		if (mouseJoint != null) {
-			world.destroyJoint(mouseJoint);
+			getWorld().destroyJoint(mouseJoint);
 			mouseJoint = null;
 		}
 
@@ -718,7 +695,7 @@ public abstract class SwimTest implements ContactListener {
 		queryAABB.upperBound.set(p.x + .001f, p.y + .001f);
 		callback.point.set(p);
 		callback.fixture = null;
-		world.queryAABB(callback, queryAABB);
+		getWorld().queryAABB(callback, queryAABB);
 
 		if (callback.fixture != null) {
 			Body body = callback.fixture.getBody();
@@ -727,7 +704,7 @@ public abstract class SwimTest implements ContactListener {
 			def.bodyB = body;
 			def.target.set(p);
 			def.maxForce = 1000f * body.getMass();
-			mouseJoint = (MouseJoint) world.createJoint(def);
+			mouseJoint = (MouseJoint) getWorld().createJoint(def);
 			body.setAwake(true);
 		}
 	}
@@ -776,7 +753,7 @@ public abstract class SwimTest implements ContactListener {
 
 	public synchronized void launchBomb(Vec2 position, Vec2 velocity) {
 		if (bomb != null) {
-			world.destroyBody(bomb);
+			getWorld().destroyBody(bomb);
 			bomb = null;
 		}
 		// todo optimize this
@@ -784,7 +761,7 @@ public abstract class SwimTest implements ContactListener {
 		bd.type = BodyType.DYNAMIC;
 		bd.position.set(position);
 		bd.bullet = true;
-		bomb = world.createBody(bd);
+		bomb = getWorld().createBody(bd);
 		bomb.setLinearVelocity(velocity);
 
 		CircleShape circle = new CircleShape();

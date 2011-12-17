@@ -51,8 +51,7 @@ public class PaddleTest extends SwimTest {
 	private RevoluteJoint m_joint1;
 	
 	@Override
-	public void initTest(boolean deserialized) {
-		float fluidHeight = 10.0f;
+	public void initTest() {
 		float pivotHeight = 10.0f;
 		
 		//Create fixed pivot point
@@ -77,23 +76,12 @@ public class PaddleTest extends SwimTest {
 			bd.position.set(0, pivotHeight);
 			Body body = getWorld().createBody(bd);
 			body.createFixture(shape, 2.0f);
+			scenario.addBody(body);
 
 			RevoluteJointDef rjd = new RevoluteJointDef();
 			rjd.initialize(pivot, body, new Vec2(bd.position.x, bd.position.y));
 			getWorld().createJoint(rjd);
 		}
-		
-		//Create fluid environment
-		BuoyancyControllerDef fluidDef = new BuoyancyControllerDef();
-		fluidDef.density = 5.0f;
-		fluidDef.offset = fluidHeight;
-		fluidDef.linearDrag = 100.0f;
-		DynamicsController fluid = fluidDef.create();
-		fluid.world = world;
-		for (Body body = getWorld().getBodyList(); body != null; body = body.getNext()) {
-			fluid.addBody(body);
-		}
-		addController(fluid);
 	}
 	
 	@Override

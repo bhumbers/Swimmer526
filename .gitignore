@@ -1,5 +1,6 @@
 .DS_Store
 *.class
+*.dat
 bin/
 jbox2d-read-only/
 jbox2d-read-only-branch/

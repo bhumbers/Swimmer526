@@ -1,6 +1,7 @@
 package ubc.swim.world;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import org.jbox2d.common.Vec2;
 import org.jbox2d.dynamics.Body;
@@ -14,7 +15,7 @@ import ubc.swim.gui.SwimSettings;
  * @author Ben Humberston
  *
  */
-public class Character {
+public abstract class SwimCharacter {
 	/** Body marked as root of this character */
 	protected Body rootBody = null;
 	
@@ -31,9 +32,11 @@ public class Character {
 	/**
 	 * Constructor
 	 */
-	public Character() {
+	public SwimCharacter() {
 		bodies = new ArrayList<Body>();
 	}
+	
+	public List<Body> getBodies() {return bodies;}
 	
 	/**
 	 * Creates segments & joints for this char in given world.
@@ -44,17 +47,10 @@ public class Character {
 	}
 	
 	/** Updates this character to use control strategy derived from 
-	 * given control parameter array */
-	public void applyControlParams(double[] params) {
-		
-	}
-	
-	/**
-	 * Resets this character to original configuration.
+	 * given control parameter array 
+	 * Array size must be same as character's control dimensionality
 	 */
-	public void reset() {
-		//TODO: override in subclasses
-	}
+	public abstract void setControlParams(double[] params);
 	
 	/**
 	 * Moves whole character to given world position
@@ -78,4 +74,10 @@ public class Character {
 	public void step(SwimSettings settings, float dt, float runtime) {
 		//TODO: override in subclasses
 	}
+	
+	/**
+	 * Returns dimensionality of this character's control strategy
+	 * @return
+	 */
+	public abstract int getNumControlDimensions();
 }

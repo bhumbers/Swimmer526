@@ -32,10 +32,8 @@ import org.jbox2d.dynamics.Body;
 import org.jbox2d.dynamics.BodyDef;
 import org.jbox2d.dynamics.joints.RevoluteJoint;
 
-import ubc.swim.dynamics.controllers.BuoyancyControllerDef;
-import ubc.swim.dynamics.controllers.DynamicsController;
 import ubc.swim.gui.SwimSettings;
-import ubc.swim.world.Character;
+import ubc.swim.world.SwimCharacter;
 import ubc.swim.world.HumanChar;
 import ubc.swim.world.HumanChar.Stroke;
 
@@ -50,7 +48,12 @@ public class BasicSwimTest extends SwimTest {
 	
 	private RevoluteJoint m_joint1;
 	
-	private Character character;
+	
+	public BasicSwimTest() {
+		super();
+		
+		charIDs.add("humanCrawl");
+	}
 	
 	@Override
 	public float getDefaultCameraScale() {
@@ -58,9 +61,7 @@ public class BasicSwimTest extends SwimTest {
 	}
 	
 	@Override
-	public void initTest(boolean deserialized) {
-		float fluidHeight = 10.0f;
-		
+	public void initTest() {		
 		Body ground = null;
 		{
 			BodyDef bd = new BodyDef();
@@ -114,29 +115,10 @@ public class BasicSwimTest extends SwimTest {
 //				prevBody = body;
 //			}
 //		}
-		
-		character = new HumanChar(Stroke.CRAWL);
-		character.initialize(getWorld());
-		character.moveTo(0, 10);
-		
-		//Create fluid environment
-		BuoyancyControllerDef fluidDef = new BuoyancyControllerDef();
-		fluidDef.density = 5.0f;
-		fluidDef.offset = fluidHeight;
-		fluidDef.linearDrag = 100.0f;
-		fluidDef.useDensity = true;
-		DynamicsController fluid = fluidDef.create();
-		fluid.world = world;
-		for (Body body = getWorld().getBodyList(); body != null; body = body.getNext()) {
-			fluid.addBody(body);
-		}
-		addController(fluid);
 	}
 	
 	@Override
 	public void step(SwimSettings settings) {
-		character.step(settings, getTimeStep(settings), runtime);
-		
 		super.step(settings);
 
 	}

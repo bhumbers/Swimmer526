@@ -53,7 +53,7 @@ public class SliderCrankTest extends SwimTest {
 	 * @see org.jbox2d.testbed.framework.TestbedTest#initTest(boolean)
 	 */
 	@Override
-	public void initTest(boolean argDeserialized) {
+	public void initTest() {
 		Body ground = null;
 		{
 			BodyDef bd = new BodyDef();

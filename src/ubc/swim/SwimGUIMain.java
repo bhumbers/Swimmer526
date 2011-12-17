@@ -13,12 +13,13 @@ import ubc.swim.gui.SwimTestList;
 import ubc.swim.gui.SwimWorldPanel;
 
 /**
- * Main entry point for program
+ * Entry point for GUI to view swimmers in real time
+ * Use this to view results of optimization.
  * @author Ben Humberston
  *
  */
-public class SwimMain {
-	private static final Logger log = LoggerFactory.getLogger(SwimMain.class);
+public class SwimGUIMain {
+	private static final Logger log = LoggerFactory.getLogger(SwimGUIMain.class);
 	
 	public static void main(String[] args) {
 		try {
