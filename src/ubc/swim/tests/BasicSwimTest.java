@@ -33,6 +33,7 @@ import org.jbox2d.dynamics.BodyDef;
 import org.jbox2d.dynamics.joints.RevoluteJoint;
 
 import ubc.swim.gui.SwimSettings;
+import ubc.swim.world.SwimCharacter;
 
 /**
  * Basic swimming test environment
@@ -68,6 +69,21 @@ public class BasicSwimTest extends SwimTest {
 			shape.setAsEdge(new Vec2(-40.0f, 0.0f), new Vec2(40.0f, 0.0f));
 			ground.createFixture(shape, 0.0f);
 		}
+		
+//		//TODO: remove. Testing controls
+//		for (SwimCharacter character : scenario.getCharacters()) {
+//			double[] control = new double[character.getNumControlDimensions()];
+//			for (int i = 1; i < 7; i += 7) {
+//				control[i] = 1.0f;
+//				control[i+1] = -1.0f;
+//				control[i+2] = 0.3f;
+//				control[i+3] = 0.1f;
+//				control[i+4] = 1.0f;
+//				control[i+5] = 0.7f;
+//				control[i+6] = 0.1f;
+//			}
+//			character.setControlParams(control);
+//		}
 
 //		{
 //			Body prevBody = ground;

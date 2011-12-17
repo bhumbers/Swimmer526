@@ -13,6 +13,8 @@ import org.jbox2d.dynamics.Body;
 public class GaussianTorqueMotor extends TorqueMotor {
 
 	protected float ONE_OVER_SQRT_TWO_PI;
+	protected static final float MIN_PERIOD = 0.00001f;
+	protected static final float MIN_STD_DEV = 0.00001f;
 	
 	protected Body bodyA;
 	protected Body bodyB;
@@ -27,11 +29,14 @@ public class GaussianTorqueMotor extends TorqueMotor {
 	 */
 	protected float maxTorque;
 	
+	/** Torque applied the last time applyTorque() was called. */
+	protected float prevTorque = 0.0f;
+	
 	/** Period gives max time value for which function is evaluated
 	 * If given time input is beyond the period, the input value is 
 	 * evaluated modulo the period.
 	 */
-	protected float period;
+	protected float period = MIN_PERIOD;
 	
 	/**
 	 * Creates a new motor that applies torques between given bodies using
@@ -54,17 +59,30 @@ public class GaussianTorqueMotor extends TorqueMotor {
 		stdDevs = new ArrayList<Float>();
 		
 		for (int i = 0; i < numGaussians; i++) {
+			weights.add(0.0f);
 			means.add(0.0f);
-			stdDevs.add(0.0f);
+			stdDevs.add(MIN_STD_DEV);
 		}
 	}
 	
 	/**
-	 * Updates period used by this motor
+	 * Returns torque applied at most recent call to applyTorque().
+	 * @return
+	 */
+	public float getPrevTorque() { return prevTorque; }
+	
+	/**
+	 * Updates period used by this motor.
+	 * If given value is less than MIN_PERIOD, sets period to MIN_PERIOD
+	 * Returns final period value
 	 * @param val
 	 */
-	public void setPeriod(float val) {
+	public float setPeriod(float val) {
 		this.period = val;
+		//Never allow tiny periods
+		if (this.period < MIN_PERIOD) 
+			this.period = MIN_PERIOD;
+		return this.period;
 	}
 	
 	/**
@@ -78,6 +96,8 @@ public class GaussianTorqueMotor extends TorqueMotor {
 	{
 		weights.set(funcNum, weight);
 		means.set(funcNum, mean);
+		
+		if (stdDev < MIN_STD_DEV) stdDev = MIN_STD_DEV;
 		stdDevs.set(funcNum, stdDev);
 	}
 	
@@ -106,8 +126,10 @@ public class GaussianTorqueMotor extends TorqueMotor {
 		//TODO: not sure if this is quite correct yet...
 		//Should the torque be applied to both, or just one body?
 		//Is applying a torque at the body's CoM equivalent to applying it at the joint?
-		bodyA.applyTorque(torque);
-		bodyB.applyTorque(-torque);
+		if (torque != 0.0f) {
+			bodyA.applyTorque(torque);
+			bodyB.applyTorque(-torque);
+		}
 		
 		//TODO: Remove if applyTorque does the job...
 //		float targetAngVel = -2 * (float)Math.PI;
@@ -124,6 +146,8 @@ public class GaussianTorqueMotor extends TorqueMotor {
 //		//Modify torso ang vel afterward... doing it during the loop causes order-of-application of forces to blow things up
 //		if (torso != null)
 //			torso.m_angularVelocity += torsoImpulse;
+		
+		prevTorque = torque;
 		
 		return torque;
 	}

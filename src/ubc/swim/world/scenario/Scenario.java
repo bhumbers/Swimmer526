@@ -106,12 +106,16 @@ public class Scenario {
 			controller.addBody(body);
 	}
 	
-	public void step(SwimSettings settings, float dt) {
-		//Apply controllers
+	public void step(SwimSettings settings, float dt) {		
+		runtime += dt;
+		
+		//Apply dynamic controllers
 		for (DynamicsController controller : dynControllers)
 			controller.step(settings);
 		
-		runtime += dt;
+		//Update characters
+		for (SwimCharacter character : characters)
+			character.step(settings, dt, runtime);
 
 		world.step(dt,
 				settings.getSetting(SwimSettings.VelocityIterations).getIntValue(),

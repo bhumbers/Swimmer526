@@ -12,6 +12,8 @@ import org.jbox2d.dynamics.World;
 import org.jbox2d.dynamics.joints.Joint;
 import org.jbox2d.dynamics.joints.RevoluteJoint;
 import org.jbox2d.dynamics.joints.RevoluteJointDef;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import ubc.swim.gui.SwimSettings;
 
@@ -21,9 +23,14 @@ import ubc.swim.gui.SwimSettings;
  *
  */
 public class HumanChar extends SwimCharacter {
+	private static final Logger log = LoggerFactory.getLogger(HumanChar.class);
+	
 	protected static final int NUM_GAUSSIANS_PER_MOTOR = 2;
-	protected static final int MAX_STROKE_PERIOD = 5; //5 seconds
-	protected static final float MAX_DEFAULT_TORQUE = 100; //100 N-m
+	protected static final int NUM_PARAMS_PER_GAUSSIAN = 3;
+	protected static final int NUM_PARAMS_PER_MOTOR = 1 + NUM_PARAMS_PER_GAUSSIAN * NUM_GAUSSIANS_PER_MOTOR; //+1 for period value
+	
+	protected static final int MAX_STROKE_PERIOD = 5; //seconds
+	protected static final float MAX_DEFAULT_TORQUE = 100; //N-m
 	
 	public enum Stroke {
 		CRAWL,
@@ -77,7 +84,11 @@ public class HumanChar extends SwimCharacter {
 	}
 	
 	@Override
-	public int getNumControlDimensions() { return 4; }
+	public int getNumControlDimensions() { 
+		//1 for head, the rest for limbs
+		int numDOF = (1 + (motors.size() - 1) / 2) * (1 + (NUM_PARAMS_PER_GAUSSIAN * NUM_GAUSSIANS_PER_MOTOR));
+		return numDOF;
+	}
 	
 	@Override
 	public void initialize(World world) {
@@ -186,6 +197,9 @@ public class HumanChar extends SwimCharacter {
 			bodies.add(lowerArm);
 		}
 		
+		joints.addAll(shoulderJoints);
+		joints.addAll(elbowJoints);
+		
 		//Create legs
 		Vec2 legJointPoint = new Vec2(-torsoHeight/2, 0.0f);
 		for (int i = 0; i < 2; i++) {
@@ -229,6 +243,9 @@ public class HumanChar extends SwimCharacter {
 			bodies.add(lowerLeg);
 		}
 		
+		joints.addAll(hipJoints);
+		joints.addAll(kneeJoints);
+		
 		//Set all bodies to be non-colliding with each other
 		Filter filter = new Filter();
 		filter.groupIndex = -1;
@@ -236,11 +253,6 @@ public class HumanChar extends SwimCharacter {
 			Body body = bodies.get(i);
 			body.getFixtureList().setFilterData(filter);
 		}
-		
-		joints.addAll(shoulderJoints);
-		joints.addAll(elbowJoints);
-		joints.addAll(hipJoints);
-		joints.addAll(kneeJoints);
 		
 		//Add motor for each joint
 		for (Joint joint : joints) {
@@ -252,24 +264,46 @@ public class HumanChar extends SwimCharacter {
 	
 	@Override
 	public void setControlParams(double[] params) {
+		if (params.length != getNumControlDimensions()) {
+			log.error("Character expected control params of size " + getNumControlDimensions() + " but was given params of size " + params.length);
+			assert(false);
+		}
+		
 		//Forward each group of params to the corresponding motor
-		//Note that we map the original [0,1] range of each parameter into
-		//the the final control ranges
+		//NOTE: 
+		//    -For some params, we map the original [0,1] range of each parameter into the final control ranges here
+		//    -For arms and legs, controls are same between left and right side, except for a possible phase shift
 		int motorIdx = 0;
-		int numGaussianParams = 3;
-		int inc = 1 + numGaussianParams * NUM_GAUSSIANS_PER_MOTOR;
-		for (int i = 0; i < params.length; i += inc) {
+		for (int i = 0; i < params.length; i += NUM_PARAMS_PER_MOTOR) {
 			GaussianTorqueMotor motor = (GaussianTorqueMotor)motors.get(motorIdx);
 			
+			boolean isLeftSideControl = (motorIdx > 1 && motorIdx % 2 == 0);
+			
 			float period = (float) params[i] * MAX_STROKE_PERIOD;
-			motor.setPeriod(period);
+			period = motor.setPeriod(period);
 			
 			//Update params of each Gaussian basis function
 			for (int j = 0; j < NUM_GAUSSIANS_PER_MOTOR; j++) {
-				int offset = j * numGaussianParams;
+				int offset = j * NUM_PARAMS_PER_GAUSSIAN;
+				
 				float weight 	= (float) params[i + offset + 1]; //weight is used in range [0,1]
-				float mean 		= (float) params[i + offset + 2] * MAX_STROKE_PERIOD;
 				float stdDev 	= (float) params[i + offset + 3] * MAX_STROKE_PERIOD;
+				
+				float mean 		= (float) params[i + offset + 2] * MAX_STROKE_PERIOD;
+				//Based on the stroke, select different left-right offsets for arms and legs
+				switch (stroke) {
+					case CRAWL:
+						//In crawl stroke, left/right legs and arms run 180 degrees out of phase, so
+						//modify means for left side of body
+						//TODO: verify this doesn't cause total breakage, make it less of a total hack
+						if (isLeftSideControl)
+							mean = (mean + period/2) % period;
+						break;
+					case FLY:
+						//Nothing to do... left & right sides run in synch
+						break;
+				}
+				
 				motor.setGaussianParams(j, weight, mean, stdDev);
 			}
 			
