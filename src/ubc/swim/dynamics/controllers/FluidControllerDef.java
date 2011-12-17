@@ -13,7 +13,7 @@ import org.jbox2d.common.Vec2;
  * @author Ben Humberston
  *
  */
-public class BuoyancyControllerDef extends DynamicsControllerDef {
+public class FluidControllerDef extends DynamicsControllerDef {
 	/// The outer surface normal
 	public Vec2 normal;
 	/// The height of the fluid surface along the normal
@@ -31,7 +31,7 @@ public class BuoyancyControllerDef extends DynamicsControllerDef {
 	/// Gravity vector, if the world's gravity is not used
 	public Vec2 gravity;
 
-	public BuoyancyControllerDef() {
+	public FluidControllerDef() {
 		normal = new Vec2(0,1);
 		offset = 0;
 		density = 0;
@@ -47,6 +47,6 @@ public class BuoyancyControllerDef extends DynamicsControllerDef {
 	 */
 	@Override
 	public DynamicsController create() {
-		return new BuoyancyController(this);
+		return new FluidController(this);
 	}
 }

@@ -65,10 +65,7 @@ public class GaussianTorqueMotor extends TorqueMotor {
 		}
 	}
 	
-	/**
-	 * Returns torque applied at most recent call to applyTorque().
-	 * @return
-	 */
+	@Override
 	public float getPrevTorque() { return prevTorque; }
 	
 	/**

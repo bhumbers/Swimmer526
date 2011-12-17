@@ -61,8 +61,6 @@ public class HumanChar extends SwimCharacter {
 	protected ArrayList<Joint> hipJoints;
 	protected ArrayList<Joint> kneeJoints;
 	
-	protected ArrayList<TorqueMotor> motors;
-	
 	/**
 	 * Create a new human character with given stroke as goal
 	 * @param stroke
@@ -79,8 +77,6 @@ public class HumanChar extends SwimCharacter {
 		
 		hipJoints = new ArrayList<Joint>();
 		kneeJoints = new ArrayList<Joint>();
-		
-		motors = new ArrayList<TorqueMotor>();
 	}
 	
 	@Override

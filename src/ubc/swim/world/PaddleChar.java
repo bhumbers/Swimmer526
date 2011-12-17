@@ -30,7 +30,7 @@ public class PaddleChar extends SwimCharacter {
 	protected static final int NUM_PARAMS_PER_MOTOR = 1 + NUM_PARAMS_PER_GAUSSIAN * NUM_GAUSSIANS_PER_MOTOR; //+1 for period value
 	
 	protected static final int MAX_STROKE_PERIOD = 5; //seconds
-	protected static final float MAX_DEFAULT_TORQUE = 2; //N-m
+	protected static final float MAX_DEFAULT_TORQUE = 5; //N-m
 	
 	//Body params
 	protected float deckLen = 3;
@@ -39,14 +39,11 @@ public class PaddleChar extends SwimCharacter {
 	protected float propWidth = 0.2f;
 
 	protected ArrayList<Joint> joints;
-	
-	protected ArrayList<TorqueMotor> motors;
 
 	public PaddleChar() {
 		super();
 	
 		joints = new ArrayList<Joint>();
-		motors = new ArrayList<TorqueMotor>();
 	}
 	
 	@Override

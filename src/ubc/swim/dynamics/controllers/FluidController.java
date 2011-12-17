@@ -25,11 +25,11 @@ import ubc.swim.world.Edge;
  * @author Ben Humberston
  *
  */
-public class BuoyancyController extends DynamicsController {
+public class FluidController extends DynamicsController {
 	/**
 	 * @param def
 	 */
-	protected BuoyancyController(BuoyancyControllerDef def) {
+	protected FluidController(FluidControllerDef def) {
 		super(def);
 		normal = def.normal.clone();
 		fluidSurfaceOffset = def.offset;
@@ -105,7 +105,7 @@ public class BuoyancyController extends DynamicsController {
 				Shape shape = fixture.getShape();
 				Vec2 subCenterOfShape = new Vec2(0,0);
 				
-				float subAreaOfShape = BuoyancyUtil.computeSubmergedArea(shape, normal, fluidSurfaceOffset, fixture.getBody().getTransform(), subCenterOfShape, subEdgesForShape);
+				float subAreaOfShape = FluidUtil.computeSubmergedArea(shape, normal, fluidSurfaceOffset, fixture.getBody().getTransform(), subCenterOfShape, subEdgesForShape);
 				
 				subEdges.addAll(subEdgesForShape);
 				
@@ -156,7 +156,7 @@ public class BuoyancyController extends DynamicsController {
 							body.applyForce(velRelToFluid,edgePoint);
 							
 							//DEBUGGING: Save force for debug drawing later
-							Vec2 dragForcePoint = velRelToFluid.mul(0.01f);
+							Vec2 dragForcePoint = velRelToFluid.mul(0.1f);
 							dragForcePoint.addLocal(edgePoint);
 							dragForces.add(new Edge(edgePoint.x, edgePoint.y, dragForcePoint.x, dragForcePoint.y));
 						}

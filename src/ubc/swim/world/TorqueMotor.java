@@ -8,4 +8,10 @@ public abstract class TorqueMotor {
 	 * @param time
 	 */
 	public abstract float applyTorque(float runtime);
+	
+	/**
+	 * Returns torque applied at most recent call to applyTorque().
+	 * @return
+	 */
+	public abstract float getPrevTorque();
 }

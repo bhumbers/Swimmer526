@@ -25,6 +25,11 @@ public abstract class SwimCharacter {
 	protected ArrayList<Body> bodies;
 	
 	/**
+	 * Motors used to control this character
+	 */
+	protected ArrayList<TorqueMotor> motors;
+	
+	/**
 	 * Control parameters used by this character
 	 */
 	protected double[] controlParams;
@@ -34,9 +39,11 @@ public abstract class SwimCharacter {
 	 */
 	public SwimCharacter() {
 		bodies = new ArrayList<Body>();
+		motors = new ArrayList<TorqueMotor>();
 	}
 	
 	public List<Body> getBodies() {return bodies;}
+	public List<TorqueMotor> getMotors() {return motors;}
 	public Body getRootBody() {return rootBody;}
 	
 	/**

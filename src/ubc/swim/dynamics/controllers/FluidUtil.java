@@ -20,7 +20,7 @@ import ubc.swim.world.Edge;
  * @author Ben Humberston
  *
  */
-public class BuoyancyUtil {
+public class FluidUtil {
 	// some thread-safe pooled vectors used during computation
 	private static final TLVec2 tlNormalL = new TLVec2();
 	private static final TLMassData tlMd = new TLMassData();

@@ -7,7 +7,7 @@ import org.jbox2d.common.Vec2;
 import org.jbox2d.dynamics.Body;
 import org.jbox2d.dynamics.World;
 
-import ubc.swim.dynamics.controllers.BuoyancyControllerDef;
+import ubc.swim.dynamics.controllers.FluidControllerDef;
 import ubc.swim.dynamics.controllers.DynamicsController;
 import ubc.swim.gui.SwimSettings;
 import ubc.swim.world.SwimCharacter;
@@ -74,7 +74,7 @@ public class Scenario {
 		
 		//Create fluid environment
 		float fluidHeight = 10.0f;
-		BuoyancyControllerDef fluidDef = new BuoyancyControllerDef();
+		FluidControllerDef fluidDef = new FluidControllerDef();
 		fluidDef.density = 5.0f;
 		fluidDef.offset = fluidHeight;
 		fluidDef.linearDrag = 100.0f;

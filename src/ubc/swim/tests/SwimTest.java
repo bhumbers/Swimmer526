@@ -429,27 +429,6 @@ public abstract class SwimTest implements ContactListener {
 
 		if (settings.pause && settings.singleStep)
 			settings.singleStep = false;
-		
-		if (settings.pause) {
-			model.getDebugDraw().drawString(5, textLine, "****PAUSED****", Color3f.WHITE);
-			textLine += 15;
-		}
-
-		int flags = 0;
-		model.getDebugDraw();
-		flags += settings.getSetting(SwimSettings.DrawShapes).enabled ? DebugDraw.e_shapeBit
-				: 0;
-		flags += settings.getSetting(SwimSettings.DrawJoints).enabled ? DebugDraw.e_jointBit
-				: 0;
-		flags += settings.getSetting(SwimSettings.DrawAABBs).enabled ? DebugDraw.e_aabbBit
-				: 0;
-		flags += settings.getSetting(SwimSettings.DrawPairs).enabled ? DebugDraw.e_pairBit
-				: 0;
-		flags += settings.getSetting(SwimSettings.DrawCOMs).enabled ? DebugDraw.e_centerOfMassBit
-				: 0;
-		flags += settings.getSetting(SwimSettings.DrawTree).enabled ? DebugDraw.e_dynamicTreeBit
-				: 0;
-		model.getDebugDraw().setFlags(flags);
 
 		getWorld().setWarmStarting(settings
 				.getSetting(SwimSettings.WarmStarting).enabled);
@@ -471,6 +450,26 @@ public abstract class SwimTest implements ContactListener {
 	public void debugDraw(SwimSettings settings) {
 		float hz = (float)settings.getSetting(SwimSettings.Hz).value;
 		float timeStep = hz > 0f ? 1f / hz : 0;
+		
+		if (settings.pause) {
+			model.getDebugDraw().drawString(5, textLine, "****PAUSED****", Color3f.WHITE);
+			textLine += 15;
+		}
+
+		int flags = 0;
+		flags += settings.getSetting(SwimSettings.DrawShapes).enabled ? DebugDraw.e_shapeBit
+				: 0;
+		flags += settings.getSetting(SwimSettings.DrawJoints).enabled ? DebugDraw.e_jointBit
+				: 0;
+		flags += settings.getSetting(SwimSettings.DrawAABBs).enabled ? DebugDraw.e_aabbBit
+				: 0;
+		flags += settings.getSetting(SwimSettings.DrawPairs).enabled ? DebugDraw.e_pairBit
+				: 0;
+		flags += settings.getSetting(SwimSettings.DrawCOMs).enabled ? DebugDraw.e_centerOfMassBit
+				: 0;
+		flags += settings.getSetting(SwimSettings.DrawTree).enabled ? DebugDraw.e_dynamicTreeBit
+				: 0;
+		model.getDebugDraw().setFlags(flags);
 		
 		World world = getWorld();
 		
