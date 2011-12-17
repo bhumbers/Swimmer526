@@ -3,6 +3,7 @@ package ubc.swim.world.scenario;
 import java.util.List;
 
 import ubc.swim.world.HumanChar;
+import ubc.swim.world.PaddleChar;
 import ubc.swim.world.SwimCharacter;
 import ubc.swim.world.HumanChar.Stroke;
 
@@ -33,6 +34,10 @@ public class ScenarioLibrary {
 					character.initialize(scenario.getWorld());
 					character.moveTo(0, 10);
 					break;
+				case "paddle":
+					character = new PaddleChar();
+					character.initialize(scenario.getWorld());
+					character.moveTo(0, 10);
 				default:
 					break;
 			}
