@@ -21,7 +21,7 @@ public class Scenario {
 	/**
 	 * List of characters in scenario
 	 */
-	protected ArrayList<SwimCharacter> chars;
+	protected ArrayList<SwimCharacter> characters;
 	
 	//Controllers which affect dynamics in this test
 	protected ArrayList<DynamicsController> dynControllers;
@@ -33,7 +33,7 @@ public class Scenario {
 	 * Constructor
 	 */
 	public Scenario() {
-		chars = new ArrayList<SwimCharacter>();
+		characters = new ArrayList<SwimCharacter>();
 		dynControllers = new ArrayList<DynamicsController>();
 	}
 	
@@ -45,25 +45,28 @@ public class Scenario {
 		
 		createWorld();
 		
-		reset();
+		runtime = 0.0f;
+//		reset();
 	}
 	
-	/**
-	 * Resets this scenario to its original configuration
-	 */
-	public void reset() {
-		runtime = 0.0f;
-		
-		//Reset controllers
-		for (DynamicsController controller : dynControllers)
-			controller.clear();
-		
-		//TODO: reset characters
-		//requires removing bodies & joints from world, recreating?
-	}
+	//TODO: implement reset to allow object reuse?
+//	/**
+//	 * Resets this scenario to its original configuration
+//	 */
+//	public void reset() {
+//		runtime = 0.0f;
+//		
+//		//Reset controllers
+//		for (DynamicsController controller : dynControllers)
+//			controller.clear();
+//		
+//		//TODO: reset characters
+//		//requires removing bodies & joints from world, recreating?
+//	}
 	
 	public World getWorld() {return world;}
 	public List<DynamicsController> getDynamicsControllers() {return dynControllers;}
+	public List<SwimCharacter> getCharacters() {return characters;}
 	
 	protected void createWorld() {
 		Vec2 gravity = new Vec2(0, -10f);
@@ -87,7 +90,7 @@ public class Scenario {
 	 * @param character
 	 */
 	public void addCharacter(SwimCharacter character) {
-		chars.add(character);
+		characters.add(character);
 		
 		//Put character segments under fluid control
 		for (Body charBody : character.getBodies())

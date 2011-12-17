@@ -37,6 +37,7 @@ public abstract class SwimCharacter {
 	}
 	
 	public List<Body> getBodies() {return bodies;}
+	public Body getRootBody() {return rootBody;}
 	
 	/**
 	 * Creates segments & joints for this char in given world.

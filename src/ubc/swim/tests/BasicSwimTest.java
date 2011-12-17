@@ -33,9 +33,6 @@ import org.jbox2d.dynamics.BodyDef;
 import org.jbox2d.dynamics.joints.RevoluteJoint;
 
 import ubc.swim.gui.SwimSettings;
-import ubc.swim.world.SwimCharacter;
-import ubc.swim.world.HumanChar;
-import ubc.swim.world.HumanChar.Stroke;
 
 /**
  * Basic swimming test environment

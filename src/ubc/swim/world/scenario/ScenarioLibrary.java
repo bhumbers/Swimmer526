@@ -1,6 +1,5 @@
 package ubc.swim.world.scenario;
 
-import java.util.HashMap;
 import java.util.List;
 
 import ubc.swim.world.HumanChar;

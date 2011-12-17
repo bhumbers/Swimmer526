@@ -3,7 +3,6 @@ package ubc.swim.world;
 import java.util.ArrayList;
 
 import org.jbox2d.collision.shapes.PolygonShape;
-import org.jbox2d.common.MathUtils;
 import org.jbox2d.common.Vec2;
 import org.jbox2d.dynamics.Body;
 import org.jbox2d.dynamics.BodyDef;
@@ -23,6 +22,8 @@ import ubc.swim.gui.SwimSettings;
  */
 public class HumanChar extends SwimCharacter {
 	protected static final int NUM_GAUSSIANS_PER_MOTOR = 2;
+	protected static final int MAX_STROKE_PERIOD = 5; //5 seconds
+	protected static final float MAX_DEFAULT_TORQUE = 100; //100 N-m
 	
 	public enum Stroke {
 		CRAWL,
@@ -244,7 +245,7 @@ public class HumanChar extends SwimCharacter {
 		//Add motor for each joint
 		for (Joint joint : joints) {
 			RevoluteJoint rjoint = (RevoluteJoint) joint;
-			GaussianTorqueMotor motor = new GaussianTorqueMotor(rjoint.getBodyA(), rjoint.getBodyB(), NUM_GAUSSIANS_PER_MOTOR);
+			GaussianTorqueMotor motor = new GaussianTorqueMotor(rjoint.getBodyA(), rjoint.getBodyB(), MAX_DEFAULT_TORQUE, NUM_GAUSSIANS_PER_MOTOR);
 			motors.add(motor);
 		}
 	}
@@ -252,21 +253,23 @@ public class HumanChar extends SwimCharacter {
 	@Override
 	public void setControlParams(double[] params) {
 		//Forward each group of params to the corresponding motor
+		//Note that we map the original [0,1] range of each parameter into
+		//the the final control ranges
 		int motorIdx = 0;
 		int numGaussianParams = 3;
 		int inc = 1 + numGaussianParams * NUM_GAUSSIANS_PER_MOTOR;
 		for (int i = 0; i < params.length; i += inc) {
 			GaussianTorqueMotor motor = (GaussianTorqueMotor)motors.get(motorIdx);
 			
-			float period = (float) params[i];
+			float period = (float) params[i] * MAX_STROKE_PERIOD;
 			motor.setPeriod(period);
 			
 			//Update params of each Gaussian basis function
 			for (int j = 0; j < NUM_GAUSSIANS_PER_MOTOR; j++) {
 				int offset = j * numGaussianParams;
-				float weight 	= (float) params[i + offset + 1];
-				float mean 		= (float) params[i + offset + 2];
-				float stdDev 	= (float) params[i + offset + 3];
+				float weight 	= (float) params[i + offset + 1]; //weight is used in range [0,1]
+				float mean 		= (float) params[i + offset + 2] * MAX_STROKE_PERIOD;
+				float stdDev 	= (float) params[i + offset + 3] * MAX_STROKE_PERIOD;
 				motor.setGaussianParams(j, weight, mean, stdDev);
 			}
 			

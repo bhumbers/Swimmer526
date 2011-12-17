@@ -22,6 +22,11 @@ public class GaussianTorqueMotor extends TorqueMotor {
 	protected ArrayList<Float> means;
 	protected ArrayList<Float> stdDevs;
 	
+	/**
+	 * Max torque that may be applied by this motor
+	 */
+	protected float maxTorque;
+	
 	/** Period gives max time value for which function is evaluated
 	 * If given time input is beyond the period, the input value is 
 	 * evaluated modulo the period.
@@ -33,13 +38,16 @@ public class GaussianTorqueMotor extends TorqueMotor {
 	 * numGaussian functions to determine torque magnitude based on time.
 	 * @param bodyA
 	 * @param bodyB
+	 * @param maxTorque
 	 * @param numGaussians
 	 */
-	public GaussianTorqueMotor(Body bodyA, Body bodyB, int numGaussians) {
+	public GaussianTorqueMotor(Body bodyA, Body bodyB, float maxTorque, int numGaussians) {
 		ONE_OVER_SQRT_TWO_PI = (float)(1 / Math.sqrt(2 * Math.PI));
 		
 		this.bodyA = bodyA;
 		this.bodyB = bodyB;
+		
+		this.maxTorque = maxTorque;
 		
 		weights = new ArrayList<Float>();
 		means = new ArrayList<Float>();
@@ -88,8 +96,11 @@ public class GaussianTorqueMotor extends TorqueMotor {
 			float stdDev = stdDevs.get(i);
 			
 			float distFromMean = time - mean;
-			torque += w * (1/stdDev) * ONE_OVER_SQRT_TWO_PI * Math.exp(-(distFromMean * distFromMean) / (2 * stdDev * stdDev));
+			//The torque contribution is max torque weighted by Gaussian value (maps from [0,1] control range into larger torques)
+			torque += maxTorque * w * (1/stdDev) * ONE_OVER_SQRT_TWO_PI * Math.exp(-(distFromMean * distFromMean) / (2 * stdDev * stdDev));
 		}
+		
+		torque = Math.min(torque, maxTorque);
 		
 		//Apply equal and opposite torques to each body
 		//TODO: not sure if this is quite correct yet...

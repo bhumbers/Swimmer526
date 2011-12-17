@@ -1,8 +1,6 @@
 package ubc.swim.optimization;
-import com.sun.xml.internal.ws.policy.spi.PolicyAssertionValidator.Fitness;
 
 import fr.inria.optimization.cmaes.CMAEvolutionStrategy;
-import fr.inria.optimization.cmaes.fitness.IObjectiveFunction;
 
 /**
  * 

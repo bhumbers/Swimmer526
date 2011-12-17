@@ -36,8 +36,6 @@ import org.jbox2d.dynamics.BodyType;
 import org.jbox2d.dynamics.joints.RevoluteJoint;
 import org.jbox2d.dynamics.joints.RevoluteJointDef;
 
-import ubc.swim.dynamics.controllers.BuoyancyControllerDef;
-import ubc.swim.dynamics.controllers.DynamicsController;
 import ubc.swim.gui.SwimSettings;
 
 /**

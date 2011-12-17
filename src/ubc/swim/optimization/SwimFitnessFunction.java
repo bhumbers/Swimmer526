@@ -1,7 +1,5 @@
 package ubc.swim.optimization;
 
-import org.jbox2d.dynamics.World;
-
 import ubc.swim.world.SwimCharacter;
 
 import fr.inria.optimization.cmaes.fitness.IObjectiveFunction;
