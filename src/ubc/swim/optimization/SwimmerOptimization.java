@@ -49,6 +49,7 @@ public class SwimmerOptimization {
 		cma.setInitialStandardDeviation(0.2); // also a mandatory setting 
 		cma.options.stopFitness = minStoppingCost;       // optional setting
 		cma.options.stopMaxIter = maxIters;
+		cma.options.diagonalCovarianceMatrix = 1; //keep diagonal covariance
 
 		// Initialize CMA and get fitness array
 		double[] fitness = cma.init();

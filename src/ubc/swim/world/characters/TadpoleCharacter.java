@@ -17,8 +17,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ubc.swim.gui.SwimSettings;
-import ubc.swim.world.motors.SineTorqueMotor;
-import ubc.swim.world.motors.TorqueMotor;
 import ubc.swim.world.trajectory.RefTrajectory;
 import ubc.swim.world.trajectory.SineTrajectory;
 

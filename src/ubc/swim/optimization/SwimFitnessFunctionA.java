@@ -7,7 +7,6 @@ import org.jbox2d.dynamics.Body;
 
 import ubc.swim.gui.SwimSettings;
 import ubc.swim.world.characters.SwimCharacter;
-import ubc.swim.world.motors.TorqueMotor;
 import ubc.swim.world.scenario.Scenario;
 import ubc.swim.world.scenario.ScenarioLibrary;
 
@@ -22,6 +21,13 @@ public class SwimFitnessFunctionA extends SwimFitnessFunction {
 	protected String charID;
 	protected Scenario scenario;
 	
+	protected float goalSpeed = 0.2f;
+	
+	//Weight terms (assigned default vals)
+	protected float speedTermWeight = 10.0f;
+	protected float energyTermWeight = 1.0f;
+	protected float rootAngleTermWeight = 1.0f;
+	
 	/**
 	 * Creates a new fitness function that will use a character
 	 * with specified identifier
@@ -30,6 +36,15 @@ public class SwimFitnessFunctionA extends SwimFitnessFunction {
 	public SwimFitnessFunctionA(String charID) {
 		this.charID = charID;
 	}
+	
+	/** Set target horizontal speed that is used as swimmer's goal */
+	public void setGoalSpeed(float val) {this.goalSpeed = val;}
+	/** Sets the weight assigned to the horizontal speed cost term */
+	public void setSpeedTermWeight(float val) {this.speedTermWeight = val;}
+	/** Sets the weight assigned to the total energy usage cost term */
+	public void setEnergyTermWeight(float val) {this.energyTermWeight = val;}
+	/** Sets the weight assigned to the cost term for deviation of the character root body from its original angle*/
+	public void setRootAngleTermWeight(float val) {this.rootAngleTermWeight = val;}
 	
 	@Override
 	public int getNumControlDimensions() {
@@ -55,55 +70,45 @@ public class SwimFitnessFunctionA extends SwimFitnessFunction {
 		float rootAngleOrig = rootBody.getAngle();
 		
 		float evaluation = 0.0f;
-		float maxRuntime = 5; //5 seconds
 		float time = 0.0f;
+		
+		//TODO: run for 5 seconds, assign bad score if no motion; 
+		//otherwise, run 5 more seconds and score based on that? May help long term stroke stability
+		float maxRuntime = 10; //5 seconds 
 		
 		SwimSettings settings = new SwimSettings();
 		float hz = (float)settings.getSetting(SwimSettings.Hz).value;
 		float dt = hz > 0f ? 1f / hz : 0;
 		
-		final float GOAL_SPEED = 2.0f;
-		
-		final float SPEED_TERM_WEIGHT = 1000.0f;
-		final float ENERGY_TERM_WEIGHT = 1.0f;
-		final float ROOT_ANGLE_TERM_WEIGHT = 1.0f;
-		
 		while (time < maxRuntime) {
-			
+			//Do a single simulation step
 			scenario.step(settings, dt);
 			
-
+			//Then, update cost evaluation so far
 			
 			//Minimize distance from target speed
-//			float targetDistanceAtTime = GOAL_SPEED * time;
+//			float targetDistanceAtTime = goalSpeed * time;
 //			float targetDistanceError = Math.abs(targetDistanceAtTime - rootBody.getPosition().x);
-//			evaluation += SPEED_TERM_WEIGHT * targetDistanceError;
-//			evaluation += SPEED_TERM_WEIGHT * Math.abs(GOAL_SPEED - rootBody.getLinearVelocity().x);
+			float speedError = Math.abs(rootBody.getLinearVelocity().x - goalSpeed);
+			evaluation += speedTermWeight * speedError;
 			
 			//Minimize total applied torques
-//			float torquesApplied = 0.0f;
-////			for (TorqueMotor motor : character.getMotors())
-////				torquesApplied += (float)Math.abs(motor.getPrevTorque());
-//			torquesApplied = character.getPrevTorque();
-//			evaluation += ENERGY_TERM_WEIGHT * torquesApplied;
-//			
-//			//Minimize root angle rotation outside some threshold value
-//			float rootAngleDeviation = (float)Math.abs(rootBody.getAngle() - rootAngleOrig);
-//			float rootAngleDevThreshold = (float)Math.PI * 0.2f;
-//			if (rootAngleDeviation > rootAngleDevThreshold)
-//				evaluation += ROOT_ANGLE_TERM_WEIGHT * rootAngleDeviation;
+			float torquesApplied = character.getPrevTorque();
+			evaluation += energyTermWeight * torquesApplied;
 			
-			//TODO: update score based on:
-			// Minimize energy to velocity ratio
-			// minimize distance from target velocity?
+			//Minimize root angle rotation outside some threshold value
+			float rootAngleDeviation = (float)Math.abs(rootBody.getAngle() - rootAngleOrig);
+			float rootAngleDevThreshold = (float)Math.PI * 0.2f;
+			if (rootAngleDeviation > rootAngleDevThreshold)
+				evaluation += rootAngleTermWeight * rootAngleDeviation;
 			
 			time += dt;
 		}
 		
-		float goalDisplacement = Math.abs(maxRuntime * GOAL_SPEED);
-		float goalDispError = goalDisplacement - rootBody.getPosition().x;
-		
-		evaluation += SPEED_TERM_WEIGHT * Math.abs(goalDispError);
+		//Alternative speed measure... find how far off final goal displacement the character ended up
+//		float goalDisplacement = Math.abs(maxRuntime * goalSpeed);
+//		float goalDispError = goalDisplacement - rootBody.getPosition().x;
+//		evaluation += speedTermWeight * Math.abs(goalDispError);
 		
 		return evaluation;
 	}

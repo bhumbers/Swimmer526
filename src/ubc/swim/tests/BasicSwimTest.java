@@ -110,9 +110,9 @@ public class BasicSwimTest extends SwimTest {
 		//Add debug info
 		if (mainChar != null) {
 			float swimSpeed = mainChar.getRootBody().getLinearVelocity().x;
-//			float torque = mainChar.getMotors().get(0).getPrevTorque();
-//			Formatter f = new Formatter();
-//			addTextLine(f.format("Swim Speed: %f, Motor Force = %f, ", swimSpeed, torque).toString());
+			Formatter f = new Formatter();
+			float torque = 0.0f; //TODO: hook up to a motor value?
+			addTextLine(f.format("Swim Speed: %f, Motor Force = %f, ", swimSpeed, torque).toString());
 		}
 	}
 

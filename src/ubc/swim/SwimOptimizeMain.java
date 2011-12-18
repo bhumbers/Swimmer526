@@ -49,7 +49,7 @@ public class SwimOptimizeMain {
 			case "paddleComplex":
 				optDesc = "tadpole character";
 				opt.setMinStoppingCost(0.0000000001);
-				opt.setMaxIters(100);
+				opt.setMaxIters(1000);
 				opt.setIterationsPerOutput(50);
 				break;
 		}
