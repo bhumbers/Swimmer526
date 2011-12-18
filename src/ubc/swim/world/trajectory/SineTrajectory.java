@@ -50,7 +50,7 @@ public class SineTrajectory extends RefTrajectory {
 	}
 	
 	@Override
-	public float getValue(float time, float dt) {
+	public float getValue(float time) {
 		float val = 0.0f;
 		//Add contribution from each sine
 		for (int i = 0; i < weights.size(); i++) {

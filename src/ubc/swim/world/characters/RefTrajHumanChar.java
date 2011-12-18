@@ -21,6 +21,8 @@ import org.jbox2d.pooling.arrays.Vec2Array;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.sun.xml.internal.ws.wsdl.writer.UsingAddressing;
+
 import ubc.swim.gui.SwimSettings;
 import ubc.swim.world.trajectory.PolynomialTrajectory;
 import ubc.swim.world.trajectory.RefTrajectory;
@@ -48,6 +50,10 @@ public class RefTrajHumanChar extends SwimCharacter {
 	
 	protected static final float MIN_STROKE_PERIOD = 0.2f; 
 	
+	//if true, the normalized angle of character's shoulder is used as phase input to other joint trajectories
+	//NOTE: if this changes, character must be re-optimized
+	protected static final boolean USE_RIGHT_SHOULDER_ANGLE_AS_PHASE = true;  
+	
 	//Body params
 	protected float height = 2; //2 meters
 	protected float headHeight = height / 8;
@@ -74,6 +80,8 @@ public class RefTrajHumanChar extends SwimCharacter {
 	protected ArrayList<Joint> joints;
 	protected ArrayList<Joint> leftJoints;
 	protected ArrayList<Joint> rightJoints;
+	
+	protected RevoluteJoint rightShoulderJoint = null; //angle of this joint is optionally used to drive phase
 	
 	protected float prevTorque = 0.0f;
 	
@@ -172,6 +180,8 @@ public class RefTrajHumanChar extends SwimCharacter {
 		Vec2 legJointPoint = new Vec2(-torsoHeight/2, 0.0f);
 		ArrayList<Joint> sideJoints = null;
 		for (int i = 0; i < 2; i++) {
+			boolean definingLeftSide = (i == 1);
+			
 			PolygonShape shape = new PolygonShape();
 			shape.setAsBox(upperArmLen/2, upperArmWidth/2);
 			
@@ -198,14 +208,22 @@ public class RefTrajHumanChar extends SwimCharacter {
 			RevoluteJointDef rjd = new RevoluteJointDef();
 			rjd.initialize(torso, upperArm, new Vec2(armJointPoint.x, armJointPoint.y));
 			RevoluteJoint shoulderJoint = (RevoluteJoint)world.createJoint(rjd);
+			if (definingLeftSide == false) 
+				rightShoulderJoint = shoulderJoint;
 			sideJoints.add(shoulderJoint);
 			PolynomialTrajectory shoulderTraj = new PolynomialTrajectory();
 			shoulderTraj.setJoint(shoulderJoint);
 			//Manually-defined linear trajectory for shoulder through a full rotation
-			float shoulderFuncSlope = -2 * (float)Math.PI / shoulderPeriod;
 			for (int j = 0; j < NUM_BASIS_FUNCS_PER_SHOULDER_TRAJECTORY; j++) {
-				if (j == 1) //t^1 term
+				//Slope term (exponent == 1). 
+				if (j == 1) {
+					float shoulderFuncSlope = -TWO_PI / shoulderPeriod;
+					//If this is the left shoulder trajectory, we'll use right shoulder angle
+					//as its phase input, so use normalized slope (phase goes from 0 to 1)
+					if (USE_RIGHT_SHOULDER_ANGLE_AS_PHASE && definingLeftSide )
+						shoulderFuncSlope = -TWO_PI;
 					shoulderTraj.setTermCoefficient(j, shoulderFuncSlope);
+				}
 				else //all other terms set to zero for now
 					shoulderTraj.setTermCoefficient(j, 0); 
 			}
@@ -370,8 +388,12 @@ public class RefTrajHumanChar extends SwimCharacter {
 			for (int j = 0; j < NUM_BASIS_FUNCS_PER_SINE_TRAJECTORY; j++) {
 				int paramsIdxOffset = j * NUM_PARAMS_PER_SINE_BASIS_FUNC;
 				
-				float weight = 		(float)params[paramsIdx + paramsIdxOffset];
-				float period = 		MIN_STROKE_PERIOD + Math.abs((float)params[paramsIdx + paramsIdxOffset + 1]);	//TODO: try fixed period?	
+				float weight = 		(float)params[paramsIdx + paramsIdxOffset];	
+
+				float period = MIN_STROKE_PERIOD + Math.abs((float)params[paramsIdx + paramsIdxOffset + 1]);
+				//Use normalized period if driven by right shoulder phase
+				if (USE_RIGHT_SHOULDER_ANGLE_AS_PHASE)
+					period = 1.0f;		
 				float phaseOffset = (float)params[paramsIdx + paramsIdxOffset + 2];
 				
 				//If using crawl stroke, add additional 180 degree phase offset to left side vs. right side
@@ -390,8 +412,20 @@ public class RefTrajHumanChar extends SwimCharacter {
 		
 		prevTorque = 0.0f;
 		
-		final float PD_GAIN = 1.0f;
+		final float PD_GAIN = 0.5f;
 		final float PD_DAMPING = 0.05f;
+		
+		float phase = runtime;
+		//May use normalized angle of right shoulder as phase instead
+		if (USE_RIGHT_SHOULDER_ANGLE_AS_PHASE) {
+			//Map shoulder angle into [0,2PI] range
+			float rightShoulderAngle = rightShoulderJoint.getJointAngle() % TWO_PI;
+			if (rightShoulderAngle < 0) 
+				rightShoulderAngle += TWO_PI;
+			rightShoulderAngle = TWO_PI - rightShoulderAngle; //have increasing, not decreasing, phase
+			//Then map again into [0,1]
+			phase = rightShoulderAngle / TWO_PI;
+		}
 		
 		//TODO: use time to drive right shoulder, but use right shoulder phase 
 		//to drive other trajectories (requires tweaking left should trajectory period)
@@ -399,13 +433,17 @@ public class RefTrajHumanChar extends SwimCharacter {
 		//Update shoulder trajectories
 		//TODO: pretty much same update as for other trajs; merge?
 		for (int i = 0; i < shoulderTrajectories.size(); i++) {
+			boolean updatingLeftShoulder = (i == 1);
+			
+			float shoulderPhase = updatingLeftShoulder ? phase : runtime;
+			
 			RefTrajectory trajectory = shoulderTrajectories.get(i);
 			RevoluteJoint joint = trajectory.getJoint();
 			
 			float jointAngle = joint.getJointAngle() % TWO_PI;
 			float jointSpeed = joint.getJointSpeed();
 			
-			float targAngle = trajectory.getValue(runtime, dt) % TWO_PI;
+			float targAngle = trajectory.getValue(shoulderPhase) % TWO_PI;
 			
 			//PD controller
 			float torque = -PD_GAIN * (jointAngle - targAngle) - PD_DAMPING * jointSpeed;
@@ -424,7 +462,7 @@ public class RefTrajHumanChar extends SwimCharacter {
 			float jointAngle = joint.getJointAngle() % TWO_PI;
 			float jointSpeed = joint.getJointSpeed();
 			
-			float targAngle = trajectory.getValue(runtime, dt) % TWO_PI;
+			float targAngle = trajectory.getValue(phase) % TWO_PI;
 			
 			//PD controller
 			float torque = -PD_GAIN * (jointAngle - targAngle) - PD_DAMPING * jointSpeed;

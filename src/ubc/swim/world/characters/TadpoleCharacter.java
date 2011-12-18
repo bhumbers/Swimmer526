@@ -160,7 +160,7 @@ public class TadpoleCharacter extends SwimCharacter {
 			float jointAngle = joint.getJointAngle() % TWO_PI;
 			float jointSpeed = joint.getJointSpeed();
 			
-			float targAngle = trajectory.getValue(runtime, dt) % TWO_PI;
+			float targAngle = trajectory.getValue(runtime) % TWO_PI;
 			
 			//PD controller
 			float torque = -PD_GAIN * (jointAngle - targAngle) - PD_DAMPING * jointSpeed;

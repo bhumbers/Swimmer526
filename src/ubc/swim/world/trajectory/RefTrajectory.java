@@ -13,12 +13,11 @@ public abstract class RefTrajectory {
 	protected RevoluteJoint joint; //optional joint associated with this trajectory
 	
 	/**
-	 * Returns current reference value, given current time and size of timestep
+	 * Returns current reference value, given current time
 	 * @param runtime
-	 * @param dt
 	 * @return
 	 */
-	public abstract float getValue(float time, float dt);
+	public abstract float getValue(float time);
 	
 	/** Optionally stores a joint associated with this trajectory. */
 	public void setJoint(RevoluteJoint joint) { this.joint = joint; }

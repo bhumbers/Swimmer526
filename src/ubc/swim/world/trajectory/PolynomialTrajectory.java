@@ -62,7 +62,7 @@ public class PolynomialTrajectory extends RefTrajectory {
 	}
 	
 	@Override
-	public float getValue(float time, float dt) {
+	public float getValue(float time) {
 		float val = 0.0f;
 		//Add contribution from each term
 		for (int i = 0; i < terms.size(); i++) {
