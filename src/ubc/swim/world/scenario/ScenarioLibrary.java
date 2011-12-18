@@ -55,8 +55,8 @@ public class ScenarioLibrary {
 			case "paddle":
 				character = new PaddleChar();
 				break;
-			case "paddleComplex":
-				character = new TadpoleCharacter(3);
+			case "tadpole":
+				character = new TadpoleCharacter(4);
 				break;
 			default:
 				break;

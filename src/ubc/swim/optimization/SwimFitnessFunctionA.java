@@ -18,13 +18,18 @@ import ubc.swim.world.scenario.ScenarioLibrary;
  */
 public class SwimFitnessFunctionA extends SwimFitnessFunction {
 	
+	protected static final float TWO_PI = (float)(2 * Math.PI);
+	
 	protected String charID;
 	protected Scenario scenario;
 	
 	protected float goalSpeed = 0.2f;
+	protected float goalDisplacement = 0.0f;
+	protected float maxRuntime = 5.0f; //5 seconds
 	
 	//Weight terms (assigned default vals)
 	protected float speedTermWeight = 10.0f;
+	protected float displacementTermWeight = 0.0f; //off by default; some tests use this rather than speed
 	protected float energyTermWeight = 1.0f;
 	protected float rootAngleTermWeight = 1.0f;
 	
@@ -39,8 +44,15 @@ public class SwimFitnessFunctionA extends SwimFitnessFunction {
 	
 	/** Set target horizontal speed that is used as swimmer's goal */
 	public void setGoalSpeed(float val) {this.goalSpeed = val;}
+	/** Set target horizontal displacement that is used as swimmer's goal */
+	public void setGoalDisplacement(float val) {this.goalDisplacement = val;}
+	/** Set how long simulation is run in order to gather cost data */
+	public void setMaxRuntime(float val) {this.maxRuntime = val;}
+	
 	/** Sets the weight assigned to the horizontal speed cost term */
 	public void setSpeedTermWeight(float val) {this.speedTermWeight = val;}
+	/** Sets the weight assigned to the horizontal displacement error cost term */
+	public void setDisplacementErrorTermWeight(float val) {this.displacementTermWeight = val;}
 	/** Sets the weight assigned to the total energy usage cost term */
 	public void setEnergyTermWeight(float val) {this.energyTermWeight = val;}
 	/** Sets the weight assigned to the cost term for deviation of the character root body from its original angle*/
@@ -74,7 +86,6 @@ public class SwimFitnessFunctionA extends SwimFitnessFunction {
 		
 		//TODO: run for 5 seconds, assign bad score if no motion; 
 		//otherwise, run 5 more seconds and score based on that? May help long term stroke stability
-		float maxRuntime = 10; //5 seconds 
 		
 		SwimSettings settings = new SwimSettings();
 		float hz = (float)settings.getSetting(SwimSettings.Hz).value;
@@ -87,28 +98,34 @@ public class SwimFitnessFunctionA extends SwimFitnessFunction {
 			//Then, update cost evaluation so far
 			
 			//Minimize distance from target speed
-//			float targetDistanceAtTime = goalSpeed * time;
-//			float targetDistanceError = Math.abs(targetDistanceAtTime - rootBody.getPosition().x);
-			float speedError = Math.abs(rootBody.getLinearVelocity().x - goalSpeed);
-			evaluation += speedTermWeight * speedError;
+			if (speedTermWeight != 0) {
+				float speedError = Math.abs(rootBody.getLinearVelocity().x - goalSpeed);
+				evaluation += speedTermWeight * speedError;
+			}
 			
 			//Minimize total applied torques
-			float torquesApplied = character.getPrevTorque();
-			evaluation += energyTermWeight * torquesApplied;
+			if (energyTermWeight != 0) {
+				float torquesApplied = character.getPrevTorque();
+				evaluation += energyTermWeight * torquesApplied;
+			}
 			
 			//Minimize root angle rotation outside some threshold value
-			float rootAngleDeviation = (float)Math.abs(rootBody.getAngle() - rootAngleOrig);
-			float rootAngleDevThreshold = (float)Math.PI * 0.2f;
-			if (rootAngleDeviation > rootAngleDevThreshold)
-				evaluation += rootAngleTermWeight * rootAngleDeviation;
+			if (rootAngleTermWeight != 0) {
+				float rootAngleDeviation = (float)Math.abs((rootBody.getAngle() % TWO_PI) - rootAngleOrig);
+				float rootAngleDevThreshold = (float)Math.PI * 0.2f;
+				if (rootAngleDeviation > rootAngleDevThreshold)
+					evaluation += rootAngleTermWeight * rootAngleDeviation;
+			}
 			
 			time += dt;
 		}
 		
-		//Alternative speed measure... find how far off final goal displacement the character ended up
-//		float goalDisplacement = Math.abs(maxRuntime * goalSpeed);
-//		float goalDispError = goalDisplacement - rootBody.getPosition().x;
-//		evaluation += speedTermWeight * Math.abs(goalDispError);
+		//Alternative locomotion measure... 
+		//Find how far off final goal displacement the character ended up
+		if (displacementTermWeight != 0) {
+			float goalDispError = goalDisplacement - rootBody.getPosition().x;
+			evaluation += displacementTermWeight * Math.abs(goalDispError);
+		}
 		
 		return evaluation;
 	}

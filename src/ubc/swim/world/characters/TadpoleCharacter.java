@@ -28,20 +28,18 @@ import ubc.swim.world.trajectory.SineTrajectory;
 public class TadpoleCharacter extends SwimCharacter {
 	private static final Logger log = LoggerFactory.getLogger(TadpoleCharacter.class);
 	
-	protected static final int NUM_BASIS_FUNCS_PER_JOINT = 1;
-	protected static final int NUM_PARAMS_PER_BASIS_FUNC = 3;
+	protected static final int NUM_BASIS_FUNCS_PER_JOINT = 2; //increase or decrease to control complexity
+	protected static final int NUM_PARAMS_PER_BASIS_FUNC = 3; //amplitude (weight), phase offset, and period 
 	protected static final int NUM_PARAMS_PER_JOINT = NUM_PARAMS_PER_BASIS_FUNC * NUM_BASIS_FUNCS_PER_JOINT;
 	
-	protected static final float STROKE_PERIOD_SCALE = 2; //seconds
 	protected static final float MIN_STROKE_PERIOD = 0.2f; 
-	protected static final float MAX_DEFAULT_TORQUE = 100; //N-m
 	
 	//Body params
-	protected float deckLen = 1.5f;
-	protected float deckWidth = 0.25f;
-	protected float propLen = 0.5f;
-	protected float propWidth = 0.1f;
-	protected int numPropSegments = 1;
+	protected float headLen = 0.5f;
+	protected float headWidth = 0.25f;
+	protected float segLen = 0.5f;
+	protected float segWidth = 0.1f;
+	protected int numTailSegments = 1;
 	
 	protected float prevTorque = 0.0f;
 
@@ -51,26 +49,26 @@ public class TadpoleCharacter extends SwimCharacter {
 	public TadpoleCharacter(int numPropSegments) {
 		super();
 	
-		this.numPropSegments = numPropSegments;
+		this.numTailSegments = numPropSegments;
 		joints = new ArrayList<Joint>();
 		trajectories = new ArrayList<RefTrajectory>();
 	}
 	
 	@Override
 	public int getNumControlDimensions() { 
-		return numPropSegments * NUM_PARAMS_PER_JOINT;
+		return numTailSegments * NUM_PARAMS_PER_JOINT;
 	}
 	
 	@Override
 	public void initialize(World world) {
 		float defaultDensity = 1.1f;
-		float deckDensity = 0.5f;
+		float deckDensity = 1.3f;
 		
 		//Create the main deck
 		Body deck;
 		{
 			PolygonShape shape = new PolygonShape();
-			shape.setAsBox(deckLen/2, deckWidth/2);
+			shape.setAsBox(headLen/2, headWidth/2);
 	
 			BodyDef bd = new BodyDef();
 			bd.type = BodyType.DYNAMIC;
@@ -82,11 +80,11 @@ public class TadpoleCharacter extends SwimCharacter {
 		}
 		
 		Body prevBody = rootBody;
-		float xOffset = -deckLen/2 - propLen/2;
-		for (int i = 0; i < numPropSegments; i++) {
+		float xOffset = -headLen/2 - segLen/2;
+		for (int i = 0; i < numTailSegments; i++) {
 			Body prop;
 			PolygonShape shape = new PolygonShape();
-			shape.setAsBox(propLen/2, propWidth/2);
+			shape.setAsBox(segLen/2, segWidth/2);
 	
 			BodyDef bd = new BodyDef();
 			bd.type = BodyType.DYNAMIC;
@@ -95,17 +93,17 @@ public class TadpoleCharacter extends SwimCharacter {
 			prop.createFixture(shape, defaultDensity);
 			
 			RevoluteJointDef rjd = new RevoluteJointDef();
-			rjd.initialize(prevBody, prop, new Vec2(xOffset + propLen/2, 0.0f));
+			rjd.initialize(prevBody, prop, new Vec2(xOffset + segLen/2, 0.0f));
 			rjd.enableLimit = true;
-			rjd.lowerAngle = -(float)Math.PI / 4;
-			rjd.upperAngle = (float)Math.PI / 4;
+			rjd.lowerAngle = -(float)Math.PI * 0.45f;
+			rjd.upperAngle = (float)Math.PI * 0.45f;
 			joints.add(world.createJoint(rjd));
 			trajectories.add(new SineTrajectory(NUM_BASIS_FUNCS_PER_JOINT));
 			
 			bodies.add(prop);
 			
 			prevBody = prop;
-			xOffset -= propLen;
+			xOffset -= segLen;
 		}
 
 		//Set all bodies to be non-colliding with each other
@@ -115,13 +113,6 @@ public class TadpoleCharacter extends SwimCharacter {
 			Body body = bodies.get(i);
 			body.getFixtureList().setFilterData(filter);
 		}
-		
-//		//Add motor for each joint
-//		for (Joint joint : joints) {
-//			RevoluteJoint rjoint = (RevoluteJoint) joint;
-//			SineTorqueMotor motor = new SineTorqueMotor(rjoint.getBodyA(), rjoint.getBodyB(), MAX_DEFAULT_TORQUE, NUM_BASIS_FUNCS_PER_MOTOR);
-//			motors.add(motor);
-//		}
 	}
 	
 	@Override
@@ -159,17 +150,18 @@ public class TadpoleCharacter extends SwimCharacter {
 		
 		prevTorque = 0.0f;
 		
-		final float PD_GAIN = 0.1f;
-		final float PD_DAMPING = 0.01f;
+		final float PD_GAIN = 1.0f;
+		final float PD_DAMPING = 0.05f;
+		final float TWO_PI = (float)(2 * Math.PI);
 		
 		for (int i = 0; i < joints.size(); i++) {
 			RevoluteJoint joint = (RevoluteJoint) joints.get(i);
 			RefTrajectory trajectory = trajectories.get(i);
 			
-			float jointAngle = joint.getJointAngle();
+			float jointAngle = joint.getJointAngle() % TWO_PI;
 			float jointSpeed = joint.getJointSpeed();
 			
-			float targAngle = trajectory.getValue(runtime, dt);
+			float targAngle = trajectory.getValue(runtime, dt) % TWO_PI;
 			
 			//PD controller
 			float torque = -PD_GAIN * (jointAngle - targAngle) - PD_DAMPING * jointSpeed;
