@@ -15,6 +15,7 @@ import org.jbox2d.dynamics.joints.RevoluteJoint;
 import org.jbox2d.dynamics.joints.RevoluteJointDef;
 
 import ubc.swim.gui.SwimSettings;
+import ubc.swim.world.trajectory.TrajectoryUtil;
 
 /**
  * A very simple paddle-driven character that uses reference trajectories and PD controller torques
@@ -140,11 +141,13 @@ public class RefTrajPaddleChar extends SwimCharacter {
 				
 				float targAngle = (prevTargAngle + nextTargAngle) * 0.5f;
 				
+				float distFromTargAngle = TrajectoryUtil.distanceBetweenAngles(jointAngle, targAngle); //handles cyclic nature of angles
+				
 				//PD controller
-				float torque = -PD_GAIN * (jointAngle - targAngle) - PD_DAMPING * jointSpeed;
+				float torque = -PD_GAIN * (distFromTargAngle) - PD_DAMPING * jointSpeed;
 				
 				joint.getBodyA().applyTorque(torque);
-				joint.getBodyB().applyTorque(torque);
+				joint.getBodyB().applyTorque(-torque);
 				
 				prevTorque += torque;
 			}

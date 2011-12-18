@@ -107,8 +107,6 @@ public class Scenario {
 	}
 	
 	public void step(SwimSettings settings, float dt) {		
-		runtime += dt;
-		
 		//Apply dynamic controllers
 		for (DynamicsController controller : dynControllers)
 			controller.step(settings);
@@ -120,5 +118,7 @@ public class Scenario {
 		world.step(dt,
 				settings.getSetting(SwimSettings.VelocityIterations).getIntValue(),
 				settings.getSetting(SwimSettings.PositionIterations).getIntValue());
+		
+		runtime += dt;
 	}
 }

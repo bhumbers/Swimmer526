@@ -26,6 +26,7 @@ import ubc.swim.gui.SwimSettings;
 import ubc.swim.world.trajectory.PolynomialTrajectory;
 import ubc.swim.world.trajectory.RefTrajectory;
 import ubc.swim.world.trajectory.SineTrajectory;
+import ubc.swim.world.trajectory.TrajectoryUtil;
 
 /**
  * A roughly humanoid swimmer that uses PD-controllers with optimized reference trajectories
@@ -441,11 +442,13 @@ public class RefTrajHumanChar extends SwimCharacter {
 			
 			float targAngle = trajectory.getValue(shoulderPhase) % TWO_PI;
 			
+			float distFromTargAngle = TrajectoryUtil.distanceBetweenAngles(jointAngle, targAngle); //handles cyclic nature of angles
+			
 			//PD controller
-			float torque = -PD_GAIN * (jointAngle - targAngle) - PD_DAMPING * jointSpeed;
+			float torque = -PD_GAIN * (distFromTargAngle) - PD_DAMPING * jointSpeed;
 			
 			joint.getBodyA().applyTorque(torque);
-			joint.getBodyB().applyTorque(torque);
+			joint.getBodyB().applyTorque(-torque);
 			
 			prevTorque += torque;
 		}
@@ -486,6 +489,7 @@ public class RefTrajHumanChar extends SwimCharacter {
 		
 		return phase;
 	}
+
 	
 	@Override
 	public void debugDraw(DebugDraw debugDraw) {

@@ -19,6 +19,7 @@ import org.slf4j.LoggerFactory;
 import ubc.swim.gui.SwimSettings;
 import ubc.swim.world.trajectory.RefTrajectory;
 import ubc.swim.world.trajectory.SineTrajectory;
+import ubc.swim.world.trajectory.TrajectoryUtil;
 
 /**
  * A multi-segment tadpole-like character that uses PD-controllers with joint angle reference trajectories
@@ -162,11 +163,13 @@ public class TadpoleCharacter extends SwimCharacter {
 			
 			float targAngle = trajectory.getValue(runtime) % TWO_PI;
 			
+			float distFromTargAngle = TrajectoryUtil.distanceBetweenAngles(jointAngle, targAngle); //handles cyclic nature of angles
+			
 			//PD controller
-			float torque = -PD_GAIN * (jointAngle - targAngle) - PD_DAMPING * jointSpeed;
+			float torque = -PD_GAIN * (distFromTargAngle) - PD_DAMPING * jointSpeed;
 			
 			joint.getBodyA().applyTorque(torque);
-			joint.getBodyB().applyTorque(torque);
+			joint.getBodyB().applyTorque(-torque);
 			
 			prevTorque += torque;
 		}
