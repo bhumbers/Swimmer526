@@ -62,38 +62,36 @@ public class SwimFitnessFunctionA extends SwimFitnessFunction {
 		float hz = (float)settings.getSetting(SwimSettings.Hz).value;
 		float dt = hz > 0f ? 1f / hz : 0;
 		
-		float targetSpeed = 1.0f; // meters/second
+		final float GOAL_SPEED = 2.0f;
 		
-		float accDistanceError;
+		final float SPEED_TERM_WEIGHT = 1000.0f;
+		final float ENERGY_TERM_WEIGHT = 1.0f;
+		final float ROOT_ANGLE_TERM_WEIGHT = 1.0f;
 		
 		while (time < maxRuntime) {
 			
 			scenario.step(settings, dt);
 			
-			final float GOAL_SPEED = 2.0f;
-			
-			final float SPEED_TERM_WEIGHT = 1000.0f;
-			final float ENERGY_TERM_WEIGHT = 0.0f;
-			final float ROOT_ANGLE_TERM_WEIGHT = 0.0f;
+
 			
 			//Minimize distance from target speed
-//			float targetDistanceAtTime = targetSpeed * time;
+//			float targetDistanceAtTime = GOAL_SPEED * time;
 //			float targetDistanceError = Math.abs(targetDistanceAtTime - rootBody.getPosition().x);
 //			evaluation += SPEED_TERM_WEIGHT * targetDistanceError;
-			evaluation += SPEED_TERM_WEIGHT * Math.abs(GOAL_SPEED - rootBody.getLinearVelocity().x);
+//			evaluation += SPEED_TERM_WEIGHT * Math.abs(GOAL_SPEED - rootBody.getLinearVelocity().x);
 			
 			//Minimize total applied torques
-			float torquesApplied = 0.0f;
-//			for (TorqueMotor motor : character.getMotors())
-//				torquesApplied += (float)Math.abs(motor.getPrevTorque());
-			torquesApplied = character.getPrevTorque();
-			evaluation += ENERGY_TERM_WEIGHT * torquesApplied;
-			
-			//Minimize root angle rotation outside some threshold value
-			float rootAngleDeviation = (float)Math.abs(rootBody.getAngle() - rootAngleOrig);
-			float rootAngleDevThreshold = (float)Math.PI * 0.2f;
-			if (rootAngleDeviation > rootAngleDevThreshold)
-				evaluation += ROOT_ANGLE_TERM_WEIGHT * rootAngleDeviation;
+//			float torquesApplied = 0.0f;
+////			for (TorqueMotor motor : character.getMotors())
+////				torquesApplied += (float)Math.abs(motor.getPrevTorque());
+//			torquesApplied = character.getPrevTorque();
+//			evaluation += ENERGY_TERM_WEIGHT * torquesApplied;
+//			
+//			//Minimize root angle rotation outside some threshold value
+//			float rootAngleDeviation = (float)Math.abs(rootBody.getAngle() - rootAngleOrig);
+//			float rootAngleDevThreshold = (float)Math.PI * 0.2f;
+//			if (rootAngleDeviation > rootAngleDevThreshold)
+//				evaluation += ROOT_ANGLE_TERM_WEIGHT * rootAngleDeviation;
 			
 			//TODO: update score based on:
 			// Minimize energy to velocity ratio
@@ -102,7 +100,10 @@ public class SwimFitnessFunctionA extends SwimFitnessFunction {
 			time += dt;
 		}
 		
-//		evaluation += Math.abs((maxRuntime * 0.3f) - rootBody.getPosition().x);
+		float goalDisplacement = Math.abs(maxRuntime * GOAL_SPEED);
+		float goalDispError = goalDisplacement - rootBody.getPosition().x;
+		
+		evaluation += SPEED_TERM_WEIGHT * Math.abs(goalDispError);
 		
 		return evaluation;
 	}
