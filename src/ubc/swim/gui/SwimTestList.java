@@ -47,6 +47,8 @@ public class SwimTestList {
 	  argModel.addTest(new BasicSwimTest("Complex Paddle", Arrays.asList("tadpole")));
       argModel.addTest(new BasicSwimTest("Human Crawl", Arrays.asList("humanCrawl")));
       argModel.addTest(new BasicSwimTest("Human Fly", Arrays.asList("humanFly")));
+      argModel.addTest(new BasicSwimTest("(Rej Traj) Human Crawl", Arrays.asList("humanCrawlRefTraj")));
+      argModel.addTest(new BasicSwimTest("(Rej Traj) Human Fly", Arrays.asList("humanFlyRefTraj")));
       argModel.addTest(new PaddleTest());
   }
 }

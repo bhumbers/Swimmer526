@@ -31,18 +31,6 @@ public class SwimOptimizeMain {
 		
 		//Set experiment-specific values
 		switch (charID) {
-			case "humanCrawl":
-				optDesc = "crawl stroke with human character";
-				opt.setMinStoppingCost(1);
-				opt.setMaxIters(50);
-				opt.setIterationsPerOutput(10);
-				break;
-			case "humanFly":
-				optDesc = "fly stroke with human character";
-				opt.setMinStoppingCost(1);
-				opt.setMaxIters(150);
-				opt.setIterationsPerOutput(10);
-				break;
 			case "paddle":
 				optDesc = "paddle character";
 				opt.setMinStoppingCost(0.0000000001);
@@ -60,6 +48,33 @@ public class SwimOptimizeMain {
 				fitFun.setSpeedTermWeight(0.0f); //ignore speed for this one; use displacment
 				fitFun.setEnergyTermWeight(0.0f);
 				fitFun.setRootAngleTermWeight(0.0f);
+				break;
+			case "humanCrawl":
+				optDesc = "crawl stroke with human character";
+				opt.setMinStoppingCost(1);
+				opt.setMaxIters(50);
+				opt.setIterationsPerOutput(10);
+				break;
+			case "humanFly":
+				optDesc = "fly stroke with human character";
+				opt.setMinStoppingCost(1);
+				opt.setMaxIters(150);
+				opt.setIterationsPerOutput(10);
+				break;
+			case "humanCrawlRefTraj":
+				optDesc = "crawl stroke with human character (reference trajectory version)";
+				opt.setMinStoppingCost(1);
+				opt.setMaxIters(50);
+				opt.setIterationsPerOutput(10);
+				break;
+			case "humanFlyRefTraj":
+				optDesc = "fly stroke with human character (reference trajectory version)";
+				opt.setMinStoppingCost(1);
+				opt.setMaxIters(20);
+				opt.setIterationsPerOutput(10);
+				fitFun.setSpeedTermWeight(10.0f);
+				fitFun.setEnergyTermWeight(1.0f);
+				fitFun.setRootAngleTermWeight(1000000.0f);
 				break;
 		}
 		

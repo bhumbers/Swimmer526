@@ -3,5 +3,6 @@
 *.dat
 *.csv
 bin/
+videos/
 jbox2d-read-only/
 jbox2d-read-only-branch/

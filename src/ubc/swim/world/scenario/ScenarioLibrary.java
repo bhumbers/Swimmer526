@@ -2,11 +2,12 @@ package ubc.swim.world.scenario;
 
 import java.util.List;
 
+import ubc.swim.world.characters.RefTrajHumanChar;
+import ubc.swim.world.characters.Stroke;
 import ubc.swim.world.characters.TadpoleCharacter;
 import ubc.swim.world.characters.HumanChar;
 import ubc.swim.world.characters.PaddleChar;
 import ubc.swim.world.characters.SwimCharacter;
-import ubc.swim.world.characters.HumanChar.Stroke;
 
 /**
  * A library of common scenarios, characters, etc.
@@ -45,18 +46,27 @@ public class ScenarioLibrary {
 	public static SwimCharacter getCharacterByID(String charID) {
 		SwimCharacter character = null;
 		
+		final float REF_TRAJ_CRAWL_STROKE_PERIOD = 1.0f; //seconds
+		final float REF_TRAJ_FLY_STROKE_PERIOD   = 1.0f; //seconds
+		
 		switch (charID) {
+			case "paddle":
+				character = new PaddleChar();
+				break;
+			case "tadpole":
+				character = new TadpoleCharacter(4);
+				break;
 			case "humanCrawl":
 				character = new HumanChar(Stroke.CRAWL);
 				break;
 			case "humanFly":
 				character = new HumanChar(Stroke.FLY);
 				break;
-			case "paddle":
-				character = new PaddleChar();
+			case "humanCrawlRefTraj":
+				character = new RefTrajHumanChar(Stroke.CRAWL, REF_TRAJ_CRAWL_STROKE_PERIOD);
 				break;
-			case "tadpole":
-				character = new TadpoleCharacter(4);
+			case "humanFlyRefTraj":
+				character = new RefTrajHumanChar(Stroke.FLY, REF_TRAJ_FLY_STROKE_PERIOD);
 				break;
 			default:
 				break;

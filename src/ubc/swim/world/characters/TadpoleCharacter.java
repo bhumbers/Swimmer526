@@ -21,16 +21,16 @@ import ubc.swim.world.trajectory.RefTrajectory;
 import ubc.swim.world.trajectory.SineTrajectory;
 
 /**
- * A multi-segment tadpole-like character
+ * A multi-segment tadpole-like character that uses PD-controllers with joint angle reference trajectories
  * @author Ben Humberston
  *
  */
 public class TadpoleCharacter extends SwimCharacter {
 	private static final Logger log = LoggerFactory.getLogger(TadpoleCharacter.class);
 	
-	protected static final int NUM_BASIS_FUNCS_PER_JOINT = 2; //increase or decrease to control complexity
+	protected static final int NUM_BASIS_FUNCS_PER_TRAJECTORY = 2; //increase or decrease to control complexity
 	protected static final int NUM_PARAMS_PER_BASIS_FUNC = 3; //amplitude (weight), phase offset, and period 
-	protected static final int NUM_PARAMS_PER_JOINT = NUM_PARAMS_PER_BASIS_FUNC * NUM_BASIS_FUNCS_PER_JOINT;
+	protected static final int NUM_PARAMS_PER_TRAJECTORY = NUM_PARAMS_PER_BASIS_FUNC * NUM_BASIS_FUNCS_PER_TRAJECTORY;
 	
 	protected static final float MIN_STROKE_PERIOD = 0.2f; 
 	
@@ -56,7 +56,7 @@ public class TadpoleCharacter extends SwimCharacter {
 	
 	@Override
 	public int getNumControlDimensions() { 
-		return numTailSegments * NUM_PARAMS_PER_JOINT;
+		return numTailSegments * NUM_PARAMS_PER_TRAJECTORY;
 	}
 	
 	@Override
@@ -98,7 +98,7 @@ public class TadpoleCharacter extends SwimCharacter {
 			rjd.lowerAngle = -(float)Math.PI * 0.45f;
 			rjd.upperAngle = (float)Math.PI * 0.45f;
 			joints.add(world.createJoint(rjd));
-			trajectories.add(new SineTrajectory(NUM_BASIS_FUNCS_PER_JOINT));
+			trajectories.add(new SineTrajectory(NUM_BASIS_FUNCS_PER_TRAJECTORY));
 			
 			bodies.add(prop);
 			
@@ -128,10 +128,10 @@ public class TadpoleCharacter extends SwimCharacter {
 		for (int i = 0; i < trajectories.size(); i++) {
 			SineTrajectory trajectory = (SineTrajectory)trajectories.get(i);
 			
-			int paramsIdx = i * NUM_PARAMS_PER_JOINT; 
+			int paramsIdx = i * NUM_PARAMS_PER_TRAJECTORY; 
 			
 			//Set vals for each basis function of the trajectory
-			for (int j = 0; j < NUM_BASIS_FUNCS_PER_JOINT; j++) {
+			for (int j = 0; j < NUM_BASIS_FUNCS_PER_TRAJECTORY; j++) {
 				int paramsIdxOffset = j * NUM_PARAMS_PER_BASIS_FUNC;
 				
 				float weight = 		(float)params[paramsIdx + paramsIdxOffset];
@@ -141,7 +141,6 @@ public class TadpoleCharacter extends SwimCharacter {
 				trajectory.setSineParams(j, weight, period, phaseOffset);
 			}
 		}
-		
 	}
 	
 	@Override

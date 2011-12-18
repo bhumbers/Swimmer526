@@ -13,8 +13,6 @@ import org.jbox2d.dynamics.World;
 import org.jbox2d.dynamics.joints.Joint;
 import org.jbox2d.dynamics.joints.RevoluteJoint;
 import org.jbox2d.dynamics.joints.RevoluteJointDef;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import ubc.swim.gui.SwimSettings;
 
@@ -24,7 +22,7 @@ import ubc.swim.gui.SwimSettings;
  *
  */
 public class RefTrajPaddleChar extends SwimCharacter {
-	private static final Logger log = LoggerFactory.getLogger(RefTrajPaddleChar.class);
+//	private static final Logger log = LoggerFactory.getLogger(RefTrajPaddleChar.class);
 	
 	protected static int NUM_REF_ANGLES = 2;
 	

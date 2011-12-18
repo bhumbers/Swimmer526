@@ -22,27 +22,31 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ubc.swim.gui.SwimSettings;
-import ubc.swim.world.motors.GaussianTorqueMotor;
-import ubc.swim.world.motors.TorqueMotor;
+import ubc.swim.world.trajectory.PolynomialTrajectory;
+import ubc.swim.world.trajectory.RefTrajectory;
+import ubc.swim.world.trajectory.SineTrajectory;
 
 /**
- * A roughly humanoid swimmer that uses directly optimized torque motors
+ * A roughly humanoid swimmer that uses PD-controllers with optimized reference trajectories
  * @author Ben Humberston
  *
  */
-public class HumanChar extends SwimCharacter {
-	private static final Logger log = LoggerFactory.getLogger(HumanChar.class);
+public class RefTrajHumanChar extends SwimCharacter {
+	private static final Logger log = LoggerFactory.getLogger(RefTrajHumanChar.class);
 	
-	protected static final int NUM_GAUSSIANS_PER_MOTOR = 2;
-	protected static final int NUM_PARAMS_PER_GAUSSIAN = 3;
-	protected static final int NUM_PARAMS_PER_MOTOR = 1 + NUM_PARAMS_PER_GAUSSIAN * NUM_GAUSSIANS_PER_MOTOR; //+1 for period value
+	protected static final float TWO_PI = (float)(2 * Math.PI);
 	
-	//Hard-coded, but data-driven solution is too time consuming
-	//1 motor for head, 2 for arms, 2 for legs (arm & leg controls are mirrored between left & right sides)
-	protected static final int NUM_CONTROL_DIMENSIONS = 5 * (1 + (NUM_PARAMS_PER_GAUSSIAN * NUM_GAUSSIANS_PER_MOTOR));
+	protected static final int NUM_SINE_TRAJECTORIES_PER_SIDE = 3; //one each for elbows, hips, and knees (shoulders use poly trajectory)
 	
-	protected static final int MAX_STROKE_PERIOD = 5; //seconds
-	protected static final float MAX_DEFAULT_TORQUE = 50; //N-m
+	protected static final int NUM_BASIS_FUNCS_PER_SINE_TRAJECTORY = 2; //increase or decrease to control complexity
+	protected static final int NUM_PARAMS_PER_SINE_BASIS_FUNC = 3;	 	//amplitude (weight), phase offset, and period 
+	protected static final int NUM_PARAMS_PER_SINE_TRAJECTORY = NUM_PARAMS_PER_SINE_BASIS_FUNC * NUM_BASIS_FUNCS_PER_SINE_TRAJECTORY;
+	
+	protected static final int NUM_BASIS_FUNCS_PER_SHOULDER_TRAJECTORY = 2; //increase or decrease to control complexity 
+	protected static final int NUM_PARAMS_PER_SHOULDER_BASIS_FUNC = 2; 		//coefficient & exponent 
+	protected static final int NUM_PARAMS_PER_SHOULDER_TRAJECTORY = NUM_PARAMS_PER_SHOULDER_BASIS_FUNC * NUM_BASIS_FUNCS_PER_SHOULDER_TRAJECTORY;
+	
+	protected static final float MIN_STROKE_PERIOD = 0.2f; 
 	
 	//Body params
 	protected float height = 2; //2 meters
@@ -62,6 +66,8 @@ public class HumanChar extends SwimCharacter {
 	
 	protected Stroke stroke;
 	
+	protected float shoulderPeriod; //time period over which shoulders go through full rotation
+	
 	protected ArrayList<Body> rightBodies;
 	protected ArrayList<Body> leftBodies;
 	
@@ -69,22 +75,25 @@ public class HumanChar extends SwimCharacter {
 	protected ArrayList<Joint> leftJoints;
 	protected ArrayList<Joint> rightJoints;
 	
-	//Motors for arms and legs, split by left and right sides
-	protected ArrayList<TorqueMotor> rightMotors;
-	protected ArrayList<TorqueMotor> leftMotors;
-	
 	protected float prevTorque = 0.0f;
+	
+	protected ArrayList<RefTrajectory> trajectories;
+	protected ArrayList<SineTrajectory> sineTrajectories;
+	protected ArrayList<PolynomialTrajectory> shoulderTrajectories;
 	
 	private final Vec2Array tlvertices = new Vec2Array(); //used for debug drawing
 	
 	/**
-	 * Create a new human character with given stroke as goal
+	 * Create a new human character with given stroke
+	 * shoulderPeriod specifies the time interval over which shoulder joints try to 
+	 * execute a full rotation.
 	 * @param stroke
 	 */
-	public HumanChar(Stroke stroke) {
+	public RefTrajHumanChar(Stroke stroke, float shoulderPeriod) {
 		super();
 		
 		this.stroke = stroke;
+		this.shoulderPeriod = shoulderPeriod;
 	
 		rightBodies = new ArrayList<Body>();
 		leftBodies = new ArrayList<Body>();
@@ -94,13 +103,19 @@ public class HumanChar extends SwimCharacter {
 		leftJoints = new ArrayList<Joint>();
 		rightJoints = new ArrayList<Joint>();
 		
-		rightMotors = new ArrayList<TorqueMotor>();
-		leftMotors = new ArrayList<TorqueMotor>();
+		trajectories = new ArrayList<RefTrajectory>();
+		sineTrajectories = new ArrayList<SineTrajectory>();
+		shoulderTrajectories = new ArrayList<PolynomialTrajectory>();
 	}
 
 	@Override
-	public int getNumControlDimensions() { 
-		return NUM_CONTROL_DIMENSIONS;
+	public int getNumControlDimensions() {
+		//NOTE: shoulder trajectory is manually coded and not included in control dims
+		
+		int numJoints = 1; //1 for head
+		numJoints += 1; //elbow 
+		numJoints += 2; //hip & knee
+		return numJoints * NUM_PARAMS_PER_SINE_TRAJECTORY;
 	}
 	
 	@Override
@@ -142,15 +157,13 @@ public class HumanChar extends SwimCharacter {
 			rjd.enableLimit = true;
 			rjd.upperAngle = (float)Math.PI/10;
 			rjd.lowerAngle = (float)-Math.PI/10;
-			Joint neckJoint = (world.createJoint(rjd));
+			RevoluteJoint neckJoint = (RevoluteJoint)(world.createJoint(rjd));
 			joints.add(neckJoint);
+			SineTrajectory neckTrajectory = new SineTrajectory(NUM_BASIS_FUNCS_PER_SINE_TRAJECTORY);
+			neckTrajectory.setJoint(neckJoint);
+			sineTrajectories.add(neckTrajectory);
 			
 			bodies.add(head);
-			
-			//Add neck motor
-			RevoluteJoint rjoint = (RevoluteJoint) neckJoint;
-			GaussianTorqueMotor motor = new GaussianTorqueMotor(rjoint.getBodyA(), rjoint.getBodyB(), MAX_DEFAULT_TORQUE, NUM_GAUSSIANS_PER_MOTOR);
-			motors.add(motor);
 		}
 
 		//Create arms and legs for left and right sides
@@ -158,13 +171,11 @@ public class HumanChar extends SwimCharacter {
 		Vec2 armJointPoint = new Vec2(torsoHeight/2, 0.0f);
 		Vec2 legJointPoint = new Vec2(-torsoHeight/2, 0.0f);
 		ArrayList<Joint> sideJoints = null;
-		ArrayList<TorqueMotor> sideMotors=  null;
 		for (int i = 0; i < 2; i++) {
 			PolygonShape shape = new PolygonShape();
 			shape.setAsBox(upperArmLen/2, upperArmWidth/2);
 			
 			sideJoints = (i == 0) ? rightJoints : leftJoints;
-			sideMotors = (i == 0) ? rightMotors : leftMotors;
 	
 			//Upper arm
 			BodyDef bd = new BodyDef();
@@ -186,7 +197,19 @@ public class HumanChar extends SwimCharacter {
 			
 			RevoluteJointDef rjd = new RevoluteJointDef();
 			rjd.initialize(torso, upperArm, new Vec2(armJointPoint.x, armJointPoint.y));
-			sideJoints.add(world.createJoint(rjd));
+			RevoluteJoint shoulderJoint = (RevoluteJoint)world.createJoint(rjd);
+			sideJoints.add(shoulderJoint);
+			PolynomialTrajectory shoulderTraj = new PolynomialTrajectory();
+			shoulderTraj.setJoint(shoulderJoint);
+			//Manually-defined linear trajectory for shoulder through a full rotation
+			float shoulderFuncSlope = -2 * (float)Math.PI / shoulderPeriod;
+			for (int j = 0; j < NUM_BASIS_FUNCS_PER_SHOULDER_TRAJECTORY; j++) {
+				if (j == 1) //t^1 term
+					shoulderTraj.setTermCoefficient(j, shoulderFuncSlope);
+				else //all other terms set to zero for now
+					shoulderTraj.setTermCoefficient(j, 0); 
+			}
+			shoulderTrajectories.add(shoulderTraj);
 			
 			bodies.add(upperArm);
 			
@@ -215,12 +238,20 @@ public class HumanChar extends SwimCharacter {
 			Body lowerArm = world.createBody(bd);
 			lowerArm.createFixture(shape, defaultDensity);
 			
-			rjd = new RevoluteJointDef();
-			rjd.enableLimit = true;
-			rjd.upperAngle = maxElbowAngle;
-			rjd.lowerAngle = minElbowAngle;
-			rjd.initialize(upperArm, lowerArm, new Vec2(0.5f * (upperArm.getPosition().x + lowerArm.getPosition().x), 0.5f * (upperArm.getPosition().y + lowerArm.getPosition().y)));
-			sideJoints.add(world.createJoint(rjd));
+			//Elbow joint
+			{
+				rjd = new RevoluteJointDef();
+				rjd.enableLimit = true;
+				rjd.upperAngle = maxElbowAngle;
+				rjd.lowerAngle = minElbowAngle;
+				rjd.initialize(upperArm, lowerArm, new Vec2(0.5f * (upperArm.getPosition().x + lowerArm.getPosition().x), 0.5f * (upperArm.getPosition().y + lowerArm.getPosition().y)));
+				sideJoints.add(world.createJoint(rjd));
+				RevoluteJoint elbowJoint = (RevoluteJoint)(world.createJoint(rjd));
+				sideJoints.add(elbowJoint);
+				SineTrajectory elbowTrajectory = new SineTrajectory(NUM_BASIS_FUNCS_PER_SINE_TRAJECTORY);
+				elbowTrajectory.setJoint(elbowJoint);
+				sineTrajectories.add(elbowTrajectory);
+			}
 			
 			bodies.add(lowerArm);
 			
@@ -235,12 +266,20 @@ public class HumanChar extends SwimCharacter {
 			Body upperLeg = world.createBody(bd);
 			upperLeg.createFixture(shape, defaultDensity);
 			
-			rjd = new RevoluteJointDef();
-			rjd.enableLimit = true;
-			rjd.upperAngle = (float)Math.PI / 4;
-			rjd.lowerAngle = (float)-Math.PI / 4;
-			rjd.initialize(torso, upperLeg, new Vec2(legJointPoint.x, legJointPoint.y));
-			sideJoints.add(world.createJoint(rjd));
+			//Hip joint
+			{
+				rjd = new RevoluteJointDef();
+				rjd.enableLimit = true;
+				rjd.upperAngle = (float)Math.PI / 4;
+				rjd.lowerAngle = (float)-Math.PI / 4;
+				rjd.initialize(torso, upperLeg, new Vec2(legJointPoint.x, legJointPoint.y));
+				sideJoints.add(world.createJoint(rjd));
+				RevoluteJoint hipJoint = (RevoluteJoint)(world.createJoint(rjd));
+				sideJoints.add(hipJoint);
+				SineTrajectory hipTrajectory = new SineTrajectory(NUM_BASIS_FUNCS_PER_SINE_TRAJECTORY);
+				hipTrajectory.setJoint(hipJoint);
+				sineTrajectories.add(hipTrajectory);
+			}
 			
 			bodies.add(upperLeg);
 			
@@ -255,12 +294,20 @@ public class HumanChar extends SwimCharacter {
 			Body lowerLeg = world.createBody(bd);
 			lowerLeg.createFixture(shape, defaultDensity);
 			
-			rjd = new RevoluteJointDef();
-			rjd.enableLimit = true;
-			rjd.upperAngle = (float)0;
-			rjd.lowerAngle = (float)-Math.PI * 0.9f;
-			rjd.initialize(upperLeg, lowerLeg, new Vec2(0.5f * (upperLeg.getPosition().x + lowerLeg.getPosition().x), 0.5f * (upperLeg.getPosition().y + lowerLeg.getPosition().y)));
-			sideJoints.add(world.createJoint(rjd));
+			//Knee joint
+			{
+				rjd = new RevoluteJointDef();
+				rjd.enableLimit = true;
+				rjd.upperAngle = (float)0;
+				rjd.lowerAngle = (float)-Math.PI * 0.9f;
+				rjd.initialize(upperLeg, lowerLeg, new Vec2(0.5f * (upperLeg.getPosition().x + lowerLeg.getPosition().x), 0.5f * (upperLeg.getPosition().y + lowerLeg.getPosition().y)));
+				sideJoints.add(world.createJoint(rjd));
+				RevoluteJoint kneeJoint = (RevoluteJoint)(world.createJoint(rjd));
+				sideJoints.add(kneeJoint);
+				SineTrajectory kneeTrajectory = new SineTrajectory(NUM_BASIS_FUNCS_PER_SINE_TRAJECTORY);
+				kneeTrajectory.setJoint(kneeJoint);
+				sineTrajectories.add(kneeTrajectory);
+			}
 			
 			bodies.add(lowerLeg);
 			
@@ -274,15 +321,10 @@ public class HumanChar extends SwimCharacter {
 			}
 			
 			joints.addAll(sideJoints);
-			
-			//Add one motor for each appendage joint on this side
-			for (Joint joint : sideJoints) {
-				RevoluteJoint rjoint = (RevoluteJoint) joint;
-				GaussianTorqueMotor motor = new GaussianTorqueMotor(rjoint.getBodyA(), rjoint.getBodyB(), MAX_DEFAULT_TORQUE, NUM_GAUSSIANS_PER_MOTOR);
-				motors.add(motor);
-				sideMotors.add(motor);
-			}
 		}
+		
+		trajectories.addAll(sineTrajectories);
+		trajectories.addAll(shoulderTrajectories);
 		
 		//Set all bodies to be non-colliding with each other
 		Filter filter = new Filter();
@@ -299,54 +341,44 @@ public class HumanChar extends SwimCharacter {
 			log.error("Character expected control params of size " + getNumControlDimensions() + " but was given params of size " + params.length);
 			assert(false);
 		}
+
+		this.controlParams = params;
 		
-		int leftSideMotorStartIdx = 1 + (motors.size() - 1) / 2;
+		//Trajectory order:
+		// Sine trajectories
+		//    neck
+		//    For left & right sides (split by side)
+		//	    elbows
+		//	    hips
+		//      knees
+		// Poly trajectories
+		//    shoulders (note: manually controlled; input params do not modify these trajectories)
 		
-		//Forward each group of params to the corresponding motor
-		//NOTE: 
-		//    -For some params, we map the original [0,1] range of each parameter into the final control ranges here
-		//    -For arms and legs, controls are same between left and right side, except for a possible phase shift
-		for (int motorIdx = 0; motorIdx < motors.size(); motorIdx++) {
-			GaussianTorqueMotor motor = (GaussianTorqueMotor)motors.get(motorIdx);
+		//Update sine-based reference trajectory params
+		int leftSideParamsStartIdx = 1 + (sineTrajectories.size() - 1) / 2; //left hand controls start in second half of sublist once neck is removed
+		for (int i = 0; i < sineTrajectories.size(); i++) {
+			boolean isLeftSideTraj = i >= leftSideParamsStartIdx;
 			
-			boolean isLeftSideControl = (motorIdx >= leftSideMotorStartIdx);
+			SineTrajectory trajectory = (SineTrajectory)sineTrajectories.get(i);
 			
-			int paramIdx = motorIdx * NUM_PARAMS_PER_MOTOR;
-			//Reuse same params from right side control (match to right-side params)
-			if (isLeftSideControl)
-				paramIdx -= rightMotors.size() * NUM_PARAMS_PER_MOTOR;
+			int paramsIdx = i * NUM_PARAMS_PER_SINE_TRAJECTORY;
+			//Mirror right side controls onto corresponding left side joints
+			if (isLeftSideTraj) 
+				paramsIdx -= NUM_SINE_TRAJECTORIES_PER_SIDE * NUM_PARAMS_PER_SINE_TRAJECTORY;
 			
-			float period = (float) params[paramIdx] * MAX_STROKE_PERIOD;
-			period = motor.setPeriod(period);
-			
-			//Update params of each Gaussian basis function
-			for (int j = 0; j < NUM_GAUSSIANS_PER_MOTOR; j++) {
-				int offset = j * NUM_PARAMS_PER_GAUSSIAN;
+			//Set vals for each basis function of the trajectory
+			for (int j = 0; j < NUM_BASIS_FUNCS_PER_SINE_TRAJECTORY; j++) {
+				int paramsIdxOffset = j * NUM_PARAMS_PER_SINE_BASIS_FUNC;
 				
-				float weight 	= (float) params[paramIdx + offset + 1]; //weight is used in range [0,1]
-				//left arm and leg use inverted torques from right arm and leg
-//				if (isLeftSideControl)
-//					weight *= -1;
+				float weight = 		(float)params[paramsIdx + paramsIdxOffset];
+				float period = 		MIN_STROKE_PERIOD + Math.abs((float)params[paramsIdx + paramsIdxOffset + 1]);	//TODO: try fixed period?	
+				float phaseOffset = (float)params[paramsIdx + paramsIdxOffset + 2];
 				
-				//Use absolute value for std dev (CMA may pick negative param vals)
-				float stdDev 	= Math.abs((float) params[paramIdx + offset + 3] * MAX_STROKE_PERIOD);
+				//If using crawl stroke, add additional 180 degree phase offset to left side vs. right side
+				if (stroke == Stroke.CRAWL && j > leftSideParamsStartIdx)
+					phaseOffset += (float) Math.PI;
 				
-				float mean 		= (float) params[paramIdx + offset + 2] * MAX_STROKE_PERIOD;
-				//Based on the stroke, select different left-right offsets for arms and legs
-				switch (stroke) {
-					case CRAWL:
-						//In crawl stroke, left/right legs and arms run 180 degrees out of phase, so
-						//modify means for left side of body
-						//TODO: verify this doesn't cause total breakage, make it less of a total hack
-						if (isLeftSideControl)
-							mean = (mean + period/2) % period;
-						break;
-					case FLY:
-						//Nothing to do... left & right sides run in synch
-						break;
-				}
-				
-				motor.setGaussianParams(j, weight, mean, stdDev);
+				trajectory.setSineParams(j, weight, period, phaseOffset);
 			}
 		}
 		
@@ -358,9 +390,50 @@ public class HumanChar extends SwimCharacter {
 		
 		prevTorque = 0.0f;
 		
-//		//Apply each control torque
-//		for (TorqueMotor motor : motors) 
-//			motor.applyTorque(runtime);
+		final float PD_GAIN = 1.0f;
+		final float PD_DAMPING = 0.05f;
+		
+		//TODO: use time to drive right shoulder, but use right shoulder phase 
+		//to drive other trajectories (requires tweaking left should trajectory period)
+		
+		//Update shoulder trajectories
+		//TODO: pretty much same update as for other trajs; merge?
+		for (int i = 0; i < shoulderTrajectories.size(); i++) {
+			RefTrajectory trajectory = shoulderTrajectories.get(i);
+			RevoluteJoint joint = trajectory.getJoint();
+			
+			float jointAngle = joint.getJointAngle() % TWO_PI;
+			float jointSpeed = joint.getJointSpeed();
+			
+			float targAngle = trajectory.getValue(runtime, dt) % TWO_PI;
+			
+			//PD controller
+			float torque = -PD_GAIN * (jointAngle - targAngle) - PD_DAMPING * jointSpeed;
+			
+			joint.getBodyA().applyTorque(torque);
+			joint.getBodyB().applyTorque(torque);
+			
+			prevTorque += torque;
+		}
+		
+		//Update the other trajectories (neck, elbows, knees, hips)
+		for (int i = 0; i < sineTrajectories.size(); i++) {
+			RefTrajectory trajectory = sineTrajectories.get(i);
+			RevoluteJoint joint = trajectory.getJoint();
+			
+			float jointAngle = joint.getJointAngle() % TWO_PI;
+			float jointSpeed = joint.getJointSpeed();
+			
+			float targAngle = trajectory.getValue(runtime, dt) % TWO_PI;
+			
+			//PD controller
+			float torque = -PD_GAIN * (jointAngle - targAngle) - PD_DAMPING * jointSpeed;
+			
+			joint.getBodyA().applyTorque(torque);
+			joint.getBodyB().applyTorque(torque);
+			
+			prevTorque += torque;
+		}
 	}
 	
 	@Override
@@ -372,7 +445,6 @@ public class HumanChar extends SwimCharacter {
 	public void debugDraw(DebugDraw debugDraw) {
 		Transform transform = new Transform();
 		Color3f color = new Color3f();
-		
 		
 		//Draw left/right coloring (note: left is drawn below right side... it's on the character side *away* from the viewer)
 		for (Body body : leftBodies) {
