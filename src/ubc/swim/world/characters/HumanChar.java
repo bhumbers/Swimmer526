@@ -1,4 +1,4 @@
-package ubc.swim.world;
+package ubc.swim.world.characters;
 
 import java.util.ArrayList;
 
@@ -22,6 +22,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ubc.swim.gui.SwimSettings;
+import ubc.swim.world.motors.GaussianTorqueMotor;
+import ubc.swim.world.motors.TorqueMotor;
 
 /**
  * A roughly humanoid swimmer
@@ -40,7 +42,7 @@ public class HumanChar extends SwimCharacter {
 	protected static final int NUM_CONTROL_DIMENSIONS = 5 * (1 + (NUM_PARAMS_PER_GAUSSIAN * NUM_GAUSSIANS_PER_MOTOR));
 	
 	protected static final int MAX_STROKE_PERIOD = 5; //seconds
-	protected static final float MAX_DEFAULT_TORQUE = 100; //N-m
+	protected static final float MAX_DEFAULT_TORQUE = 50; //N-m
 	
 	public enum Stroke {
 		CRAWL,
@@ -75,6 +77,8 @@ public class HumanChar extends SwimCharacter {
 	//Motors for arms and legs, split by left and right sides
 	protected ArrayList<TorqueMotor> rightMotors;
 	protected ArrayList<TorqueMotor> leftMotors;
+	
+	protected float prevTorque = 0.0f;
 	
 	private final Vec2Array tlvertices = new Vec2Array(); //used for debug drawing
 	
@@ -202,14 +206,14 @@ public class HumanChar extends SwimCharacter {
 			if (i == 1 && stroke == Stroke.CRAWL) {
 				lowerArmOffset = -upperArmLen/2 - lowerArmLen/2;
 				lowerArmRot = 0;
-				minElbowAngle = -(float)Math.PI * 0.9f;
-				maxElbowAngle = (float)Math.PI * 0.9f;
+				minElbowAngle = -(float)Math.PI * 0.1f;
+				maxElbowAngle = (float)Math.PI * 0.1f;
 			}
 			else {
 				lowerArmOffset = upperArmLen/2 + lowerArmLen/2;
 				lowerArmRot = (float)Math.PI;
-				minElbowAngle = (float)-Math.PI * 0.9f;
-				maxElbowAngle = (float)Math.PI * 0.9f;
+				minElbowAngle = (float)-Math.PI * 0.1f;
+				maxElbowAngle = (float)Math.PI * 0.1f;
 			}
 			bd.position.set(upperArm.getPosition().x + lowerArmOffset, 0.0f);
 			bd.angle = lowerArmRot;
@@ -357,9 +361,16 @@ public class HumanChar extends SwimCharacter {
 	public void step(SwimSettings settings, float dt, float runtime) {
 		if (dt == 0) return;
 		
-		//Apply each control torque
-		for (TorqueMotor motor : motors) 
-			motor.applyTorque(runtime);
+		prevTorque = 0.0f;
+		
+//		//Apply each control torque
+//		for (TorqueMotor motor : motors) 
+//			motor.applyTorque(runtime);
+	}
+	
+	@Override
+	public float getPrevTorque() {
+		return prevTorque;
 	}
 	
 	@Override

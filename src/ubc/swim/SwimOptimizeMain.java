@@ -46,6 +46,12 @@ public class SwimOptimizeMain {
 				opt.setMaxIters(500);
 				opt.setIterationsPerOutput(50);
 				break;
+			case "paddleComplex":
+				optDesc = "tadpole character";
+				opt.setMinStoppingCost(0.0000000001);
+				opt.setMaxIters(100);
+				opt.setIterationsPerOutput(50);
+				break;
 		}
 		
 		final String HASHES = "###################";

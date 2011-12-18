@@ -58,7 +58,7 @@ import ubc.swim.dynamics.controllers.DynamicsController;
 import ubc.swim.gui.ContactPoint;
 import ubc.swim.gui.SwimModel;
 import ubc.swim.gui.SwimSettings;
-import ubc.swim.world.SwimCharacter;
+import ubc.swim.world.characters.SwimCharacter;
 import ubc.swim.world.scenario.Scenario;
 import ubc.swim.world.scenario.ScenarioLibrary;
 

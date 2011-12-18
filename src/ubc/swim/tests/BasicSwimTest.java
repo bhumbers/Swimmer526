@@ -36,7 +36,7 @@ import org.jbox2d.dynamics.BodyDef;
 
 import ubc.swim.gui.SwimSettings;
 import ubc.swim.optimization.SwimmerOptimization;
-import ubc.swim.world.SwimCharacter;
+import ubc.swim.world.characters.SwimCharacter;
 
 /**
  * Basic swimming test environment
@@ -110,9 +110,9 @@ public class BasicSwimTest extends SwimTest {
 		//Add debug info
 		if (mainChar != null) {
 			float swimSpeed = mainChar.getRootBody().getLinearVelocity().x;
-			float torque = mainChar.getMotors().get(0).getPrevTorque();
-			Formatter f = new Formatter();
-			addTextLine(f.format("Swim Speed: %f, Motor Force = %f, ", swimSpeed, torque).toString());
+//			float torque = mainChar.getMotors().get(0).getPrevTorque();
+//			Formatter f = new Formatter();
+//			addTextLine(f.format("Swim Speed: %f, Motor Force = %f, ", swimSpeed, torque).toString());
 		}
 	}
 

@@ -1,4 +1,4 @@
-package ubc.swim.world;
+package ubc.swim.world.motors;
 
 import java.util.ArrayList;
 
@@ -75,7 +75,7 @@ public class GaussianTorqueMotor extends TorqueMotor {
 	 * @param val
 	 */
 	public float setPeriod(float val) {
-		this.period = val;
+		this.period = Math.abs(val); //only positive period allowed
 		//Never allow tiny periods
 		if (this.period < MIN_PERIOD) 
 			this.period = MIN_PERIOD;
@@ -115,7 +115,9 @@ public class GaussianTorqueMotor extends TorqueMotor {
 			
 			float distFromMean = time - mean;
 			//The torque contribution is max torque weighted by Gaussian value (maps from [0,1] control range into larger torques)
-			torque += maxTorque * w * (1/stdDev) * ONE_OVER_SQRT_TWO_PI * Math.exp(-(distFromMean * distFromMean) / (2 * stdDev * stdDev));
+			float expTerm = -(distFromMean * distFromMean) / (2 * stdDev * stdDev);
+			float amplitudeTerm = maxTorque * w * (1/stdDev) * ONE_OVER_SQRT_TWO_PI;
+			torque += amplitudeTerm * Math.exp(expTerm);
 		}
 		
 		torque = Math.min(torque, maxTorque);
@@ -128,22 +130,6 @@ public class GaussianTorqueMotor extends TorqueMotor {
 			bodyA.applyTorque(torque);
 			bodyB.applyTorque(-torque);
 		}
-		
-		//TODO: Remove if applyTorque does the job...
-//		float targetAngVel = -2 * (float)Math.PI;
-//		float errorAngVel = (upperArm.m_angularVelocity - torso.m_angularVelocity) - targetAngVel;
-//		float impulse = 8 * shoulderJoint.m_motorMass * (-errorAngVel);
-//		
-//		float maxImpulse = dt * 30;
-//		impulse = MathUtils.clamp(impulse, -maxImpulse, maxImpulse);
-//		
-//		//TODO: apply a torque, not a direct impulse
-//		torsoImpulse -= torso.m_invI * impulse;
-//		upperArm.m_angularVelocity += upperArm.m_invI * impulse;
-//		
-//		//Modify torso ang vel afterward... doing it during the loop causes order-of-application of forces to blow things up
-//		if (torso != null)
-//			torso.m_angularVelocity += torsoImpulse;
 		
 		prevTorque = torque;
 		

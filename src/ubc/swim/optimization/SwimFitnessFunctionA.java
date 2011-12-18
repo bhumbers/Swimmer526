@@ -6,7 +6,8 @@ import java.util.List;
 import org.jbox2d.dynamics.Body;
 
 import ubc.swim.gui.SwimSettings;
-import ubc.swim.world.SwimCharacter;
+import ubc.swim.world.characters.SwimCharacter;
+import ubc.swim.world.motors.TorqueMotor;
 import ubc.swim.world.scenario.Scenario;
 import ubc.swim.world.scenario.ScenarioLibrary;
 
@@ -63,21 +64,36 @@ public class SwimFitnessFunctionA extends SwimFitnessFunction {
 		
 		float targetSpeed = 1.0f; // meters/second
 		
+		float accDistanceError;
+		
 		while (time < maxRuntime) {
 			
 			scenario.step(settings, dt);
 			
+			final float GOAL_SPEED = 2.0f;
+			
+			final float SPEED_TERM_WEIGHT = 1000.0f;
+			final float ENERGY_TERM_WEIGHT = 0.0f;
+			final float ROOT_ANGLE_TERM_WEIGHT = 0.0f;
+			
 			//Minimize distance from target speed
-//			evaluation += Math.abs(1.0f - rootBody.getLinearVelocity().x);
-			float targetDistanceAtTime = targetSpeed * time;
-			float targetDistanceError = Math.abs(targetDistanceAtTime - rootBody.getPosition().x);
-			evaluation += 1.0f * targetDistanceError;
+//			float targetDistanceAtTime = targetSpeed * time;
+//			float targetDistanceError = Math.abs(targetDistanceAtTime - rootBody.getPosition().x);
+//			evaluation += SPEED_TERM_WEIGHT * targetDistanceError;
+			evaluation += SPEED_TERM_WEIGHT * Math.abs(GOAL_SPEED - rootBody.getLinearVelocity().x);
+			
+			//Minimize total applied torques
+			float torquesApplied = 0.0f;
+//			for (TorqueMotor motor : character.getMotors())
+//				torquesApplied += (float)Math.abs(motor.getPrevTorque());
+			torquesApplied = character.getPrevTorque();
+			evaluation += ENERGY_TERM_WEIGHT * torquesApplied;
 			
 			//Minimize root angle rotation outside some threshold value
 			float rootAngleDeviation = (float)Math.abs(rootBody.getAngle() - rootAngleOrig);
 			float rootAngleDevThreshold = (float)Math.PI * 0.2f;
 			if (rootAngleDeviation > rootAngleDevThreshold)
-				evaluation += 1.0f * rootAngleDeviation;
+				evaluation += ROOT_ANGLE_TERM_WEIGHT * rootAngleDeviation;
 			
 			//TODO: update score based on:
 			// Minimize energy to velocity ratio

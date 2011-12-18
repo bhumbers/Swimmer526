@@ -1,6 +1,6 @@
 package ubc.swim.optimization;
 
-import ubc.swim.world.SwimCharacter;
+import ubc.swim.world.characters.SwimCharacter;
 
 import fr.inria.optimization.cmaes.fitness.IObjectiveFunction;
 
@@ -22,7 +22,7 @@ public abstract class SwimFitnessFunction implements IObjectiveFunction {
 	/**
 	 * Returns swimmer character used in this function
 	 */
-	public ubc.swim.world.SwimCharacter getCharacter() { return character;}
+	public ubc.swim.world.characters.SwimCharacter getCharacter() { return character;}
 	
 	/**
 	 * Returns dimensionality of control used by character in this fitness function

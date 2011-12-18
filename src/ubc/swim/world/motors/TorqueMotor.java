@@ -1,4 +1,4 @@
-package ubc.swim.world;
+package ubc.swim.world.motors;
 
 public abstract class TorqueMotor {
 	/**

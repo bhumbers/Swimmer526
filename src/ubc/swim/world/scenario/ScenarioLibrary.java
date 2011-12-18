@@ -2,10 +2,11 @@ package ubc.swim.world.scenario;
 
 import java.util.List;
 
-import ubc.swim.world.HumanChar;
-import ubc.swim.world.PaddleChar;
-import ubc.swim.world.SwimCharacter;
-import ubc.swim.world.HumanChar.Stroke;
+import ubc.swim.world.characters.TadpoleCharacter;
+import ubc.swim.world.characters.HumanChar;
+import ubc.swim.world.characters.PaddleChar;
+import ubc.swim.world.characters.SwimCharacter;
+import ubc.swim.world.characters.HumanChar.Stroke;
 
 /**
  * A library of common scenarios, characters, etc.
@@ -53,6 +54,10 @@ public class ScenarioLibrary {
 				break;
 			case "paddle":
 				character = new PaddleChar();
+				break;
+			case "paddleComplex":
+				character = new TadpoleCharacter(3);
+				break;
 			default:
 				break;
 		}

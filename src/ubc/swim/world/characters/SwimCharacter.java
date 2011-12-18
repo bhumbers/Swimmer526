@@ -1,4 +1,4 @@
-package ubc.swim.world;
+package ubc.swim.world.characters;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,6 +9,7 @@ import org.jbox2d.dynamics.Body;
 import org.jbox2d.dynamics.World;
 
 import ubc.swim.gui.SwimSettings;
+import ubc.swim.world.motors.TorqueMotor;
 
 /**
  * A multisegment character in the swimmer world.
@@ -83,6 +84,13 @@ public abstract class SwimCharacter {
 	public void step(SwimSettings settings, float dt, float runtime) {
 		//TODO: override in subclasses
 	}
+	
+	
+	/**
+	 * Returns total torque applied on previous step by this character
+	 * @return
+	 */
+	public abstract float getPrevTorque();
 	
 	/**
 	 * Returns dimensionality of this character's control strategy

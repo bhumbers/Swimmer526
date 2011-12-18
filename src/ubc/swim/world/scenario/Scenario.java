@@ -10,7 +10,7 @@ import org.jbox2d.dynamics.World;
 import ubc.swim.dynamics.controllers.FluidControllerDef;
 import ubc.swim.dynamics.controllers.DynamicsController;
 import ubc.swim.gui.SwimSettings;
-import ubc.swim.world.SwimCharacter;
+import ubc.swim.world.characters.SwimCharacter;
 
 /** A world scenario for the swimmer app
  * 
