@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import org.jbox2d.callbacks.DebugDraw;
 import org.jbox2d.collision.shapes.PolygonShape;
 import org.jbox2d.common.Color3f;
+import org.jbox2d.common.Mat22;
 import org.jbox2d.common.Settings;
 import org.jbox2d.common.Transform;
 import org.jbox2d.common.Vec2;
@@ -20,8 +21,6 @@ import org.jbox2d.dynamics.joints.RevoluteJointDef;
 import org.jbox2d.pooling.arrays.Vec2Array;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.sun.xml.internal.ws.wsdl.writer.UsingAddressing;
 
 import ubc.swim.gui.SwimSettings;
 import ubc.swim.world.trajectory.PolynomialTrajectory;
@@ -84,6 +83,8 @@ public class RefTrajHumanChar extends SwimCharacter {
 	protected RevoluteJoint rightShoulderJoint = null; //angle of this joint is optionally used to drive phase
 	
 	protected float prevTorque = 0.0f;
+	
+	protected float targetRightShoulderPhase = 0.0f; //phase goal for right shoulder after last step()
 	
 	protected ArrayList<RefTrajectory> trajectories;
 	protected ArrayList<SineTrajectory> sineTrajectories;
@@ -415,16 +416,11 @@ public class RefTrajHumanChar extends SwimCharacter {
 		final float PD_GAIN = 0.5f;
 		final float PD_DAMPING = 0.05f;
 		
-		float phase = runtime;
+		float phase = runtime; //normally, use time as phase
 		//May use normalized angle of right shoulder as phase instead
 		if (USE_RIGHT_SHOULDER_ANGLE_AS_PHASE) {
-			//Map shoulder angle into [0,2PI] range
-			float rightShoulderAngle = rightShoulderJoint.getJointAngle() % TWO_PI;
-			if (rightShoulderAngle < 0) 
-				rightShoulderAngle += TWO_PI;
-			rightShoulderAngle = TWO_PI - rightShoulderAngle; //have increasing, not decreasing, phase
-			//Then map again into [0,1]
-			phase = rightShoulderAngle / TWO_PI;
+			targetRightShoulderPhase = runtime % shoulderPeriod;
+			phase = getRightShoulderPhase();
 		}
 		
 		//TODO: use time to drive right shoulder, but use right shoulder phase 
@@ -479,6 +475,18 @@ public class RefTrajHumanChar extends SwimCharacter {
 		return prevTorque;
 	}
 	
+	protected float getRightShoulderPhase() {
+		//Map shoulder angle into [0,2PI] range
+		float rightShoulderAngle = rightShoulderJoint.getJointAngle() % TWO_PI;
+		if (rightShoulderAngle < 0) 
+			rightShoulderAngle += TWO_PI;
+		rightShoulderAngle = TWO_PI - rightShoulderAngle; //have increasing, not decreasing, phase
+		//Then map again into [0,1]
+		float phase = rightShoulderAngle / TWO_PI;
+		
+		return phase;
+	}
+	
 	@Override
 	public void debugDraw(DebugDraw debugDraw) {
 		Transform transform = new Transform();
@@ -489,17 +497,48 @@ public class RefTrajHumanChar extends SwimCharacter {
 			transform.set(body.getTransform());
 			color.set(0.2f, 0.9f, 0.2f);
 			for (Fixture fixture = body.getFixtureList(); fixture != null; fixture = fixture.getNext())
-				drawPolygon((PolygonShape) fixture.getShape(), transform, color, debugDraw);
+				drawPolygon((PolygonShape) fixture.getShape(), transform, color, debugDraw, true);
 		}
 		for (Body body : rightBodies) {
 			transform.set(body.getTransform());
 			color.set(0.9f, 0.2f, 0.2f);
 			for (Fixture fixture = body.getFixtureList(); fixture != null; fixture = fixture.getNext())
-				drawPolygon((PolygonShape) fixture.getShape(), transform, color, debugDraw);
+				drawPolygon((PolygonShape) fixture.getShape(), transform, color, debugDraw, true);
+		}
+		
+		//Draw current phase if using right shoulder phase
+		if (USE_RIGHT_SHOULDER_ANGLE_AS_PHASE) {
+			float phase = getRightShoulderPhase();
+			
+			float phaseBoxWidth = 40;
+			float phaseBoxHeight = 200;
+			float targetPhaseLevelWidth = 5;
+			float phaseLevel = phaseBoxHeight * phase;
+			float targetPhaseLevel = phaseBoxHeight * targetRightShoulderPhase;
+			
+			//Background holder
+			PolygonShape box = new PolygonShape();
+			Transform phaseBoxTransform = new Transform(new Vec2(20, 300), new Mat22(1, 0, 0, 1));
+			box.setAsBox(phaseBoxWidth/2, phaseBoxHeight/2);
+			drawPolygon(box, phaseBoxTransform, new Color3f(1, 1, 1), debugDraw, false);
+			
+			//Phase level
+			box = new PolygonShape();
+			Transform phaseLevelTransform = new Transform(phaseBoxTransform);
+			phaseLevelTransform.position.y += (phaseBoxHeight/2 - phaseLevel/2);
+			box.setAsBox(phaseBoxWidth/2, phaseLevel/2);
+			drawPolygon(box, phaseLevelTransform, new Color3f(1,0,1), debugDraw, false);
+			
+			//Target phase level
+			box = new PolygonShape();
+			Transform targetLevelTransform = new Transform(phaseBoxTransform);
+			targetLevelTransform.position.y += (targetPhaseLevelWidth/2 + phaseBoxHeight/2 - targetPhaseLevel);
+			box.setAsBox(phaseBoxWidth/2, targetPhaseLevelWidth/2); //just a moving horizontal level line
+			drawPolygon(box, targetLevelTransform, new Color3f(1,1,0), debugDraw, false);
 		}
 	}
 	
-	protected void drawPolygon(PolygonShape shape, Transform transform, Color3f color, DebugDraw debugDraw) {
+	protected void drawPolygon(PolygonShape shape, Transform transform, Color3f color, DebugDraw debugDraw, boolean shapeInWorldSpace) {
 		int vertexCount = shape.m_vertexCount;
 		assert (vertexCount <= Settings.maxPolygonVertices);
 		Vec2[] vertices = tlvertices.get(Settings.maxPolygonVertices);
@@ -508,6 +547,6 @@ public class RefTrajHumanChar extends SwimCharacter {
 			Transform.mulToOut(transform, shape.m_vertices[i], vertices[i]);
 		}
 		
-		debugDraw.drawSolidPolygon(vertices, vertexCount, color);
+		debugDraw.drawSolidPolygon(vertices, vertexCount, color, shapeInWorldSpace);
 	}
 }

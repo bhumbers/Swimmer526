@@ -71,6 +71,20 @@ public abstract class DebugDraw {
 	public void clearFlags(int flags) {
 		m_drawFlags &= ~flags;
 	}
+	
+	
+
+	/**
+	 * Draw a closed polygon provided in CCW order.  This implementation
+	 * uses {@link #drawSegment(Vec2, Vec2, Color3f)} to draw each side of the
+	 * polygon. Assumes polygon is in world space
+	 * @param vertices
+	 * @param vertexCount
+	 * @param color
+	 */
+	public void drawPolygon(Vec2[] vertices, int vertexCount, Color3f color){
+		drawPolygon(vertices, vertexCount, color, true);
+	}
 
 	/**
 	 * Draw a closed polygon provided in CCW order.  This implementation
@@ -79,19 +93,20 @@ public abstract class DebugDraw {
 	 * @param vertices
 	 * @param vertexCount
 	 * @param color
+	 * @param vertsInWorldSpace if true, vertices will be transformed from world to screen space
 	 */
-	public void drawPolygon(Vec2[] vertices, int vertexCount, Color3f color){
+	public void drawPolygon(Vec2[] vertices, int vertexCount, Color3f color, boolean vertsInWorldSpace){
 		if(vertexCount == 1){
-			drawSegment(vertices[0], vertices[0], color);
+			drawSegment(vertices[0], vertices[0], color, vertsInWorldSpace);
 			return;
 		}
 		
 		for(int i=0; i<vertexCount-1; i+=1){
-			drawSegment(vertices[i], vertices[i+1], color);
+			drawSegment(vertices[i], vertices[i+1], color, vertsInWorldSpace);
 		}
 		
 		if(vertexCount > 2){
-			drawSegment(vertices[vertexCount-1], vertices[0], color);
+			drawSegment(vertices[vertexCount-1], vertices[0], color, vertsInWorldSpace);
 		}
 	}
 	
@@ -99,6 +114,15 @@ public abstract class DebugDraw {
 
 	/**
 	 * Draw a solid closed polygon provided in CCW order.
+	 * @param vertices
+	 * @param vertexCount
+	 * @param color
+	 * @param vertsInWorldSpace If true, assumes given vertices are in world space; transforms them to screen space before drawing
+	 */
+	public abstract void drawSolidPolygon(Vec2[] vertices, int vertexCount, Color3f color, boolean vertsInWorldSpace);
+	
+	/**
+	 * Draw a solid closed polygon provided in CCW order. Assumes vertices are in world space
 	 * @param vertices
 	 * @param vertexCount
 	 * @param color
@@ -123,12 +147,24 @@ public abstract class DebugDraw {
 	public abstract void drawSolidCircle(Vec2 center, float radius, Vec2 axis, Color3f color);
 	
 	/**
+	 * Draw a line segment. Assumes points are in world space
+	 * @param p1
+	 * @param p2
+	 * @param color
+	 * @param vertsInWorldSpace if true, vertices will be transformed from world to screen space
+	 */
+	public void drawSegment(Vec2 p1, Vec2 p2, Color3f color) {
+		drawSegment(p1, p2, color, true);
+	}
+	
+	/**
 	 * Draw a line segment.
 	 * @param p1
 	 * @param p2
 	 * @param color
+	 * @param vertsInWorldSpace if true, vertices will be transformed from world to screen space
 	 */
-	public abstract void drawSegment(Vec2 p1, Vec2 p2, Color3f color);
+	public abstract void drawSegment(Vec2 p1, Vec2 p2, Color3f color, boolean vertsInWorldSpace);
 
 	/**
 	 * Draw a transform.  Choose your own length scale
