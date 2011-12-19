@@ -89,6 +89,7 @@ public abstract class SwimTest implements ContactListener {
 	}
 	
 	protected float runtime; //total simulated time in world since last reset
+	protected long frameCount; //total frames run since last reset
 	
 	protected Scenario scenario;
 	
@@ -156,6 +157,7 @@ public abstract class SwimTest implements ContactListener {
 		bomb = null;
 		mouseJoint = null;
 		runtime = 0.0f;
+		frameCount = 0;
 
 		BodyDef bodyDef = new BodyDef();
 		groundBody = getWorld().createBody(bodyDef);
@@ -204,6 +206,9 @@ public abstract class SwimTest implements ContactListener {
 	public static ContactPoint[] getContactPoints() {
 		return points;
 	}
+	
+	/** Returns total frames simulated since last reset */
+	public long getFrameCount() {return frameCount;}
 
 	/**
 	 * Gets the ground body of the world, used for some joints
@@ -449,6 +454,9 @@ public abstract class SwimTest implements ContactListener {
 		
 		if (drawingEnabled)
 			debugDraw(settings);
+		
+		if (dt > 0)
+			frameCount++;
 	}
 	
 	/** 

@@ -41,8 +41,13 @@ import java.awt.image.PixelGrabber;
 import java.io.File;
 import java.io.IOException;
 import java.text.DecimalFormat;
+import java.util.Iterator;
 
+import javax.imageio.IIOImage;
 import javax.imageio.ImageIO;
+import javax.imageio.ImageWriteParam;
+import javax.imageio.ImageWriter;
+import javax.imageio.stream.ImageOutputStream;
 import javax.swing.ImageIcon;
 
 import org.jbox2d.common.Vec2;
@@ -335,20 +340,34 @@ public class SwimController implements Runnable {
 			
 			//Write current world image to disk if recording
 			//Probably not the best place for this, but ....
-			if (model.getSettings().recording) {
+			if (model.getSettings().recording && currTest != null) {
 				Image img = panel.getBufferedImage();
 				
 				//Create filename
 				String testID = currTest.getTestID();
 				DecimalFormat leadingZeroesFormat = new java.text.DecimalFormat("0000");
-				String frameNumSuffix = leadingZeroesFormat.format(new Long(frameCount));
+				long testFrameCount = currTest.getFrameCount();
+				String frameNumSuffix = leadingZeroesFormat.format(new Long(testFrameCount));
 				String fileName = testID + frameNumSuffix;
-				String filePath = 
+				String fullFileName = "./images/" + testID + "/" + fileName + ".png";
 				
 				if (img != null) {
 					try {
-						BufferedImage bi = new BufferedImage(700, 700, BufferedImage.TYPE_INT_ARGB);//getBufferedImage(img);
-						ImageIO.write(bi, "BMP", new File("./images/" + testID + "/" + fileName + ".png"));
+						BufferedImage bi = getBufferedImage(img);
+						
+						File imgFile = new File(fullFileName);
+						
+						Iterator<ImageWriter> imageWriters = ImageIO.getImageWritersByFormatName("png");
+						if ( imageWriters.hasNext() ) {
+						    ImageWriter writer = (ImageWriter)imageWriters.next();
+						    ImageOutputStream stream = ImageIO.createImageOutputStream(imgFile);
+						    writer.setOutput(stream);
+						    ImageWriteParam param = writer.getDefaultWriteParam();
+						    writer.write(null, new IIOImage(bi, null, null), param);
+						    
+						    stream.flush();
+						    stream.close();
+						}
 					} catch (IOException ie) {
 				      ie.printStackTrace();
 				    }
