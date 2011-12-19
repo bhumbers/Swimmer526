@@ -185,4 +185,9 @@ public class SliderCrankTest extends SwimTest {
 		return "Slider Crank";
 	}
 	
+	@Override
+	public String getTestID() {
+		return "slider_crank_test";
+	}
+	
 }

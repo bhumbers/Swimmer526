@@ -2,7 +2,6 @@ package ubc.swim.world.characters;
 
 import java.util.ArrayList;
 
-import org.jbox2d.callbacks.DebugDraw;
 import org.jbox2d.collision.shapes.PolygonShape;
 import org.jbox2d.common.Vec2;
 import org.jbox2d.dynamics.Body;
@@ -39,7 +38,7 @@ public class PaddleChar extends SwimCharacter {
 	protected static final int NUM_CONTROL_DIMENSIONS = 1 * (1 + (NUM_PARAMS_PER_GAUSSIAN * NUM_GAUSSIANS_PER_MOTOR));
 	
 	protected static final int MAX_STROKE_PERIOD = 5; //seconds
-	protected static final float MAX_DEFAULT_TORQUE = 5; //N-m
+	protected static final float MAX_DEFAULT_TORQUE = 500; //N-m
 	
 	//Body params
 	protected float deckLen = 3;
@@ -50,7 +49,7 @@ public class PaddleChar extends SwimCharacter {
 	protected float prevTorque = 0.0f;
 
 	protected ArrayList<Joint> joints;
-
+	
 	public PaddleChar() {
 		super();
 	
@@ -89,7 +88,7 @@ public class PaddleChar extends SwimCharacter {
 	
 			BodyDef bd = new BodyDef();
 			bd.type = BodyType.DYNAMIC;
-			bd.position.set(-deckLen/2, 0.0f);
+			bd.position.set(-deckLen/2 - propLen/2, 0.0f);
 			prop = world.createBody(bd);
 			prop.createFixture(shape, defaultDensity);
 			
@@ -152,7 +151,7 @@ public class PaddleChar extends SwimCharacter {
 	}
 	
 	@Override
-	public void step(SwimSettings settings, float dt, float runtime) {
+	public void step(SwimSettings settings, float dt) {
 		if (dt == 0) return;
 		
 		prevTorque = 0.0f;
@@ -165,10 +164,5 @@ public class PaddleChar extends SwimCharacter {
 	@Override
 	public float getPrevTorque() {
 		return prevTorque;
-	}
-	
-	@Override
-	public void debugDraw(DebugDraw debugDraw) {
-		
 	}
 }

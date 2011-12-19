@@ -26,6 +26,7 @@
  */
 package ubc.swim.gui;
 
+import java.awt.Image;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
@@ -67,6 +68,12 @@ public interface SwimPanel {
    * @return
    */
   public DebugDraw getDebugDraw();
+  
+  /**
+   * Returns current buffered image (may be null if recently resized window)
+   * @return
+   */
+  public Image getBufferedImage();
 
   /**
    * Renders the world

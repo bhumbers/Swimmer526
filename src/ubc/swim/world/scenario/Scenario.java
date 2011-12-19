@@ -112,8 +112,10 @@ public class Scenario {
 			controller.step(settings);
 		
 		//Update characters
-		for (SwimCharacter character : characters)
-			character.step(settings, dt, runtime);
+		for (SwimCharacter character : characters) {
+			character.step(settings, dt);
+			character.updateStats(dt);
+		}
 
 		world.step(dt,
 				settings.getSetting(SwimSettings.VelocityIterations).getIntValue(),

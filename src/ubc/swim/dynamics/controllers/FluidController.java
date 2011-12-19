@@ -215,9 +215,9 @@ public class FluidController extends DynamicsController {
 		debugDraw.drawSolidPolygon(vertices, 4, color);
 		
 		
-		//DEBUG: Draw submerged edges
-		for (Edge subEdge : subEdges)
-			debugDraw.drawSegment(subEdge.pA, subEdge.pB, new Color3f(0,0.2f,1));
+//		//DEBUG: Draw submerged edges
+//		for (Edge subEdge : subEdges)
+//			debugDraw.drawSegment(subEdge.pA, subEdge.pB, new Color3f(0,0.2f,1));
 		
 		if (drawDragForces) {
 			//DEBUG: Draw drag forces

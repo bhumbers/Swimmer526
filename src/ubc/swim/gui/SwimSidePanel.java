@@ -70,6 +70,7 @@ public class SwimSidePanel extends JPanel implements ChangeListener, ActionListe
   public JComboBox<ListItem> tests;
 
   private JButton pauseButton = new JButton("Pause");
+  private JButton recordButton = new JButton("Record");
   private JButton stepButton = new JButton("Step");
   private JButton resetButton = new JButton("Reset");
   private JButton quitButton = new JButton("Quit");
@@ -167,6 +168,7 @@ public class SwimSidePanel extends JPanel implements ChangeListener, ActionListe
     add(middle, "Center");
 
     pauseButton.setAlignmentX(CENTER_ALIGNMENT);
+    recordButton.setAlignmentX(CENTER_ALIGNMENT);
     stepButton.setAlignmentX(CENTER_ALIGNMENT);
     resetButton.setAlignmentX(CENTER_ALIGNMENT);
 //    saveButton.setAlignmentX(CENTER_ALIGNMENT);
@@ -180,6 +182,7 @@ public class SwimSidePanel extends JPanel implements ChangeListener, ActionListe
 
     JPanel buttons2 = new JPanel();
     buttons2.setLayout(new GridLayout(0, 1));
+    buttons2.add(recordButton);
     buttons2.add(pauseButton);
     buttons2.add(stepButton);
 
@@ -201,17 +204,34 @@ public class SwimSidePanel extends JPanel implements ChangeListener, ActionListe
       public void actionPerformed(ActionEvent e) {
         if (model.getSettings().pause) {
           model.getSettings().pause = false;
+          model.getSettings().recording = false;
           pauseButton.setText("Pause");
         } else {
           model.getSettings().pause = true;
+          model.getSettings().recording = false;
           pauseButton.setText("Resume");
         }
       }
     });
+    
+    recordButton.addActionListener(new ActionListener() {
+        public void actionPerformed(ActionEvent e) {
+          if (model.getSettings().recording) {
+        	model.getSettings().recording = false;
+            model.getSettings().pause = true;
+            recordButton.setText("Record");
+          } else {
+        	model.getSettings().recording = true;
+            model.getSettings().pause = false;
+            recordButton.setText("Stop!");
+          }
+        }
+      });
 
     stepButton.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
         model.getSettings().singleStep = true;
+        model.getSettings().recording = false;
         if (!model.getSettings().pause) {
           model.getSettings().pause = true;
           pauseButton.setText("Resume");

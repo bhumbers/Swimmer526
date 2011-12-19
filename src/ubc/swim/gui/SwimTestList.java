@@ -30,6 +30,7 @@ import java.util.Arrays;
 
 import ubc.swim.tests.BasicSwimTest;
 import ubc.swim.tests.PaddleTest;
+import ubc.swim.tests.SwimTest;
 
 
 /**
@@ -43,12 +44,32 @@ public class SwimTestList {
   public static void populateModel(SwimModel argModel){
       
 	  argModel.addCategory("Basic");
-	  argModel.addTest(new BasicSwimTest("Paddle", Arrays.asList("paddle")));
-	  argModel.addTest(new BasicSwimTest("Tadpole", Arrays.asList("tadpole")));
-      argModel.addTest(new BasicSwimTest("(Rej Traj) Human Crawl", Arrays.asList("humanCrawlRefTraj")));
-      argModel.addTest(new BasicSwimTest("(Rej Traj) Human Fly", Arrays.asList("humanFlyRefTraj")));
-      argModel.addTest(new BasicSwimTest("Human Crawl", Arrays.asList("humanCrawl")));
-      argModel.addTest(new BasicSwimTest("Human Fly", Arrays.asList("humanFly")));
+	  argModel.addTest(new BasicSwimTest("paddle", Arrays.asList("paddle"), Arrays.asList("")));
+	  argModel.addTest(new BasicSwimTest("tadpole", Arrays.asList("tadpole"), Arrays.asList("")));
+      argModel.addTest(new BasicSwimTest("humanCrawlRefTraj", Arrays.asList("humanCrawlRefTraj"), Arrays.asList("")));
+      argModel.addTest(new BasicSwimTest("humanFlyRefTraj", Arrays.asList("humanFlyRefTraj"), Arrays.asList("")));
+      argModel.addTest(new BasicSwimTest("humanCrawl", Arrays.asList("humanCrawl"), Arrays.asList("")));
+      argModel.addTest(new BasicSwimTest("humanFly", Arrays.asList("humanFly"), Arrays.asList("")));
+      
+      argModel.addCategory("Multicharacter");
+      argModel.addTest(new BasicSwimTest("paddle_and_human", Arrays.asList("paddle", "humanFlyRefTraj"), Arrays.asList("", "")));
+      
+      SwimTest speedPaddleTest = new BasicSwimTest("paddle_speed", Arrays.asList("paddle", "paddle", "paddle"), Arrays.asList("speed1", "speed2", "speed3"));
+      speedPaddleTest.setDefaultCameraScale(40);
+      speedPaddleTest.setDefaultCameraPos(5, 10);
+      argModel.addTest(speedPaddleTest);
+      
+      SwimTest energyPaddleTest = new BasicSwimTest("paddle_energy", Arrays.asList("paddle", "paddle", "paddle"), Arrays.asList("energy1", "energy2", "energy3"));
+      energyPaddleTest.setDefaultCameraScale(40);
+      energyPaddleTest.setDefaultCameraPos(5, 10);
+      argModel.addTest(energyPaddleTest);
+      
+      SwimTest orientationPaddleTest = new BasicSwimTest("paddle_orientation", Arrays.asList("paddle", "paddle", "paddle"), Arrays.asList("orientation1", "orientation2", "orientation3"));
+      orientationPaddleTest.setDefaultCameraScale(40);
+      orientationPaddleTest.setDefaultCameraPos(5, 10);
+      argModel.addTest(orientationPaddleTest);
+      
+      argModel.addCategory("Debugging");
       argModel.addTest(new PaddleTest());
   }
 }

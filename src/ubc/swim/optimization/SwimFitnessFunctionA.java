@@ -76,7 +76,7 @@ public class SwimFitnessFunctionA extends SwimFitnessFunction {
 		charIDs.add(charID);
 		scenario = ScenarioLibrary.getBasicScenario(charIDs);
 		
-		SwimCharacter character = scenario.getCharacters().get(0); 
+		character = scenario.getCharacters().get(0); 
 		character.setControlParams(x);
 		Body rootBody = character.getRootBody();
 		float rootAngleOrig = rootBody.getAngle();
@@ -112,8 +112,7 @@ public class SwimFitnessFunctionA extends SwimFitnessFunction {
 			//Minimize root angle rotation outside some threshold value
 			if (rootAngleTermWeight != 0) {
 				float rootAngleDeviation = (float)Math.abs((rootBody.getAngle() % TWO_PI) - rootAngleOrig);
-				float rootAngleDevThreshold = (float)Math.PI * 0.2f;
-				if (rootAngleDeviation > rootAngleDevThreshold)
+				if (rootAngleDeviation > SwimCharacter.ROOT_BODY_ANGLE_DEVIATION_THRESHOLD)
 					evaluation += rootAngleTermWeight * rootAngleDeviation;
 			}
 			

@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import org.jbox2d.callbacks.DebugDraw;
 import org.jbox2d.collision.shapes.PolygonShape;
 import org.jbox2d.common.Color3f;
-import org.jbox2d.common.Settings;
 import org.jbox2d.common.Transform;
 import org.jbox2d.common.Vec2;
 import org.jbox2d.dynamics.Body;
@@ -17,7 +16,6 @@ import org.jbox2d.dynamics.World;
 import org.jbox2d.dynamics.joints.Joint;
 import org.jbox2d.dynamics.joints.RevoluteJoint;
 import org.jbox2d.dynamics.joints.RevoluteJointDef;
-import org.jbox2d.pooling.arrays.Vec2Array;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -74,8 +72,6 @@ public class HumanChar extends SwimCharacter {
 	protected ArrayList<TorqueMotor> leftMotors;
 	
 	protected float prevTorque = 0.0f;
-	
-	private final Vec2Array tlvertices = new Vec2Array(); //used for debug drawing
 	
 	/**
 	 * Create a new human character with given stroke as goal
@@ -353,7 +349,7 @@ public class HumanChar extends SwimCharacter {
 	}
 	
 	@Override
-	public void step(SwimSettings settings, float dt, float runtime) {
+	public void step(SwimSettings settings, float dt) {
 		if (dt == 0) return;
 		
 		prevTorque = 0.0f;
@@ -379,25 +375,13 @@ public class HumanChar extends SwimCharacter {
 			transform.set(body.getTransform());
 			color.set(0.2f, 0.9f, 0.2f);
 			for (Fixture fixture = body.getFixtureList(); fixture != null; fixture = fixture.getNext())
-				drawPolygon((PolygonShape) fixture.getShape(), transform, color, debugDraw);
+				drawPolygon((PolygonShape) fixture.getShape(), transform, color, debugDraw, true);
 		}
 		for (Body body : rightBodies) {
 			transform.set(body.getTransform());
 			color.set(0.9f, 0.2f, 0.2f);
 			for (Fixture fixture = body.getFixtureList(); fixture != null; fixture = fixture.getNext())
-				drawPolygon((PolygonShape) fixture.getShape(), transform, color, debugDraw);
+				drawPolygon((PolygonShape) fixture.getShape(), transform, color, debugDraw, true);
 		}
-	}
-	
-	protected void drawPolygon(PolygonShape shape, Transform transform, Color3f color, DebugDraw debugDraw) {
-		int vertexCount = shape.m_vertexCount;
-		assert (vertexCount <= Settings.maxPolygonVertices);
-		Vec2[] vertices = tlvertices.get(Settings.maxPolygonVertices);
-		
-		for (int i = 0; i < vertexCount; ++i) {
-			Transform.mulToOut(transform, shape.m_vertices[i], vertices[i]);
-		}
-		
-		debugDraw.drawSolidPolygon(vertices, vertexCount, color);
 	}
 }

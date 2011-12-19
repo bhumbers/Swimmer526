@@ -57,12 +57,14 @@ public class SwimSettings {
   public static final String DrawTree = "Draw Dynamic Tree";
   
   public static final String DrawDragForces = "Draw Drag Forces";
+  public static final String DrawDebugChars = "Draw Character Debug Data";
   
   public static final String FluidDensity = "Fluid Density";
   public static final String FluidDrag = "Fluid Drag";
   public static final String FluidVelocity = "Fluid Speed (horizontal)";
 
   public boolean pause = false;
+  public boolean recording = false; //if true, world images are written to disk; use sparingly
   public boolean singleStep = false;
 
   private ArrayList<SwimSetting> settings;
@@ -80,18 +82,19 @@ public class SwimSettings {
     addSetting(new SwimSetting(VelocityIterations, SettingType.ENGINE, 8, 1, 100));
     addSetting(new SwimSetting(WarmStarting, SettingType.ENGINE, true));
     addSetting(new SwimSetting(ContinuousCollision, SettingType.ENGINE, true));
-    addSetting(new SwimSetting(DrawShapes, SettingType.DRAWING, true));
+    addSetting(new SwimSetting(DrawShapes, SettingType.DRAWING, false));
     addSetting(new SwimSetting(DrawJoints, SettingType.DRAWING, true));
     addSetting(new SwimSetting(DrawAABBs, SettingType.DRAWING, false));
     addSetting(new SwimSetting(DrawPairs, SettingType.DRAWING, false));
     addSetting(new SwimSetting(DrawContactPoints, SettingType.DRAWING, false));
     addSetting(new SwimSetting(DrawNormals, SettingType.DRAWING, false));
     addSetting(new SwimSetting(DrawCOMs, SettingType.DRAWING, false));
-    addSetting(new SwimSetting(DrawStats, SettingType.DRAWING, true));
+    addSetting(new SwimSetting(DrawStats, SettingType.DRAWING, false));
     addSetting(new SwimSetting(DrawHelp, SettingType.DRAWING, false));
     addSetting(new SwimSetting(DrawTree, SettingType.DRAWING, false));
     
     addSetting(new SwimSetting(DrawDragForces, SettingType.DRAWING, true));
+    addSetting(new SwimSetting(DrawDebugChars, SettingType.DRAWING, true));
     
     addSetting(new SwimSetting(FluidDensity, SettingType.ENGINE, 1.1, 0, 5, 100));
     addSetting(new SwimSetting(FluidDrag, SettingType.ENGINE, 0.7, 0, 100, 400));

@@ -145,7 +145,7 @@ public class TadpoleCharacter extends SwimCharacter {
 	}
 	
 	@Override
-	public void step(SwimSettings settings, float dt, float runtime) {
+	public void step(SwimSettings settings, float dt) {
 		if (dt == 0) return;
 		
 		prevTorque = 0.0f;

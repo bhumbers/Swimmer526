@@ -53,8 +53,8 @@ import ubc.swim.tests.SwimTest;
 public class SwimWorldPanel extends JPanel implements SwimPanel {
   private static final Logger log = LoggerFactory.getLogger(SwimWorldPanel.class);
 
-  public static final int INIT_WIDTH = 600;
-  public static final int INIT_HEIGHT = 600;
+  public static final int INIT_WIDTH = 700;
+  public static final int INIT_HEIGHT = 700;
 
   private static final float ZOOM_OUT_SCALE = .95f;
   private static final float ZOOM_IN_SCALE = 1.05f;
@@ -152,6 +152,11 @@ public class SwimWorldPanel extends JPanel implements SwimPanel {
   @Override
   public DebugDraw getDebugDraw() {
     return draw;
+  }
+  
+  @Override 
+  public Image getBufferedImage() {
+	  return dbImage;
   }
 
   public Graphics2D getDBGraphics() {

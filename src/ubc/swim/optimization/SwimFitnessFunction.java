@@ -20,7 +20,7 @@ public abstract class SwimFitnessFunction implements IObjectiveFunction {
 	public abstract boolean isFeasible(double[] x);
 	
 	/**
-	 * Returns swimmer character used in this function
+	 * Returns swimmer character used on last valueOf simulation
 	 */
 	public ubc.swim.world.characters.SwimCharacter getCharacter() { return character;}
 	

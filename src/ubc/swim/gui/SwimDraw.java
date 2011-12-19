@@ -88,15 +88,10 @@ public class SwimDraw extends DebugDraw {
 
 	@Override
 	public void drawSegment(Vec2 p1, Vec2 p2, Color3f color, boolean vertsInWorldSpace) {
-		if (vertsInWorldSpace) {
-			getWorldToScreenToOut(p1, sp1);
-			getWorldToScreenToOut(p2, sp2);
-		}
-		else {
-			sp1.set(p1);
-			sp2.set(p2);
-		}
-			
+		if (vertsInWorldSpace) 
+		getWorldToScreenToOut(p1, sp1);
+		getWorldToScreenToOut(p2, sp2);
+
 		Graphics2D g = getGraphics();
 		Color c = cpool.getColor(color.x, color.y, color.z);
 		g.setColor(c);
@@ -155,7 +150,7 @@ public class SwimDraw extends DebugDraw {
 		g.fillPolygon(xInts, yInts, vertexCount);
 
 		// outside
-		drawPolygon(vertices, vertexCount, color, vertsInWorldSpace);
+		drawPolygon(vertices, vertexCount, color);
 	}
 
 	@Override

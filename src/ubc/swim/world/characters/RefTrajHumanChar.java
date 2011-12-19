@@ -6,7 +6,6 @@ import org.jbox2d.callbacks.DebugDraw;
 import org.jbox2d.collision.shapes.PolygonShape;
 import org.jbox2d.common.Color3f;
 import org.jbox2d.common.Mat22;
-import org.jbox2d.common.Settings;
 import org.jbox2d.common.Transform;
 import org.jbox2d.common.Vec2;
 import org.jbox2d.dynamics.Body;
@@ -18,7 +17,6 @@ import org.jbox2d.dynamics.World;
 import org.jbox2d.dynamics.joints.Joint;
 import org.jbox2d.dynamics.joints.RevoluteJoint;
 import org.jbox2d.dynamics.joints.RevoluteJointDef;
-import org.jbox2d.pooling.arrays.Vec2Array;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -90,8 +88,6 @@ public class RefTrajHumanChar extends SwimCharacter {
 	protected ArrayList<RefTrajectory> trajectories;
 	protected ArrayList<SineTrajectory> sineTrajectories;
 	protected ArrayList<PolynomialTrajectory> shoulderTrajectories;
-	
-	private final Vec2Array tlvertices = new Vec2Array(); //used for debug drawing
 	
 	/**
 	 * Create a new human character with given stroke
@@ -409,7 +405,7 @@ public class RefTrajHumanChar extends SwimCharacter {
 	}
 	
 	@Override
-	public void step(SwimSettings settings, float dt, float runtime) {
+	public void step(SwimSettings settings, float dt) {
 		if (dt == 0) return;
 		
 		prevTorque = 0.0f;
@@ -542,17 +538,5 @@ public class RefTrajHumanChar extends SwimCharacter {
 			box.setAsBox(phaseBoxWidth/2, targetPhaseLevelWidth/2); //just a moving horizontal level line
 			drawPolygon(box, targetLevelTransform, new Color3f(1,1,0), debugDraw, false);
 		}
-	}
-	
-	protected void drawPolygon(PolygonShape shape, Transform transform, Color3f color, DebugDraw debugDraw, boolean shapeInWorldSpace) {
-		int vertexCount = shape.m_vertexCount;
-		assert (vertexCount <= Settings.maxPolygonVertices);
-		Vec2[] vertices = tlvertices.get(Settings.maxPolygonVertices);
-		
-		for (int i = 0; i < vertexCount; ++i) {
-			Transform.mulToOut(transform, shape.m_vertices[i], vertices[i]);
-		}
-		
-		debugDraw.drawSolidPolygon(vertices, vertexCount, color, shapeInWorldSpace);
 	}
 }

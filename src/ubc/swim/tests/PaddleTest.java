@@ -111,5 +111,10 @@ public class PaddleTest extends SwimTest {
 	public String getTestName() {
 		return "Paddle Wheel Test";
 	}
+	
+	@Override
+	public String getTestID() {
+		return "paddle_wheel_test";
+	}
 
 }

@@ -73,6 +73,9 @@ public abstract class SwimTest implements ContactListener {
 	protected static final long GROUND_BODY_TAG = 1897450239847L;
 	protected static final long BOMB_TAG = 98989788987L;
 	protected static final long MOUSE_JOINT_TAG = 4567893364789L;
+	
+	protected float defaultCameraScale = 100;
+	protected Vec2 defaultCameraPos = new Vec2(0, 10); //at default fluid height
 
 //	private static final Logger log = LoggerFactory
 //			.getLogger(SwimTest.class);
@@ -122,10 +125,14 @@ public abstract class SwimTest implements ContactListener {
 	
 	/** List of IDs for characters that appear in this test */
 	protected ArrayList<String> charIDs;
+	
+	/** List of char ID suffices used in this test */
+	protected ArrayList<String> suffixes;
 
 	public SwimTest() {
 		inputQueue = new LinkedList<QueueItem>();
 		charIDs = new ArrayList<String>();
+		suffixes = new ArrayList<String>();
 	}
 
 	public void init(SwimModel argModel) {
@@ -279,22 +286,20 @@ public abstract class SwimTest implements ContactListener {
 		this.dialogOnSaveLoadErrors = dialogOnSaveLoadErrors;
 	}
 
-	/**
-	 * Override for a different default camera pos
-	 * 
-	 * @return
-	 */
 	public Vec2 getDefaultCameraPos() {
-		return new Vec2(0, 10);
+		return defaultCameraPos;
 	}
 
-	/**
-	 * Override for a different default camera scale
-	 * 
-	 * @return
-	 */
+	public void setDefaultCameraPos(float x, float y) {
+		defaultCameraPos.set(x, y);
+	}
+	
 	public float getDefaultCameraScale() {
-		return 10;
+		return defaultCameraScale;
+	}
+	
+	public void setDefaultCameraScale(float val) { 
+		this.defaultCameraScale = val;
 	}
 
 	/**
@@ -342,6 +347,13 @@ public abstract class SwimTest implements ContactListener {
 	 * @return
 	 */
 	public abstract String getTestName();
+	
+	/**
+	 * The machine-friendly test ID
+	 * 
+	 * @return
+	 */
+	public abstract String getTestID();
 
 	/**
 	 * called when the tests exits
@@ -356,11 +368,6 @@ public abstract class SwimTest implements ContactListener {
 		}
 
 		textLine = 30;
-
-		if (title != null) {
-			model.getDebugDraw().drawString(model.getPanelWidth() / 2, 15,
-					title, Color3f.WHITE);
-		}
 
 		// process our input
 		if (!inputQueue.isEmpty()) {
@@ -481,6 +488,9 @@ public abstract class SwimTest implements ContactListener {
 		}
 
 		if (settings.getSetting(SwimSettings.DrawStats).enabled) {
+			if (title != null)
+				model.getDebugDraw().drawString(model.getPanelWidth() / 2, 15, title, Color3f.WHITE);
+			
 			// Vec2.watchCreations = true;
 			model.getDebugDraw().drawString(5, textLine, "Engine Info",
 					color4);
@@ -573,8 +583,9 @@ public abstract class SwimTest implements ContactListener {
 		}
 		
 		//Draw character debug info
-		for (SwimCharacter character : scenario.getCharacters()) {
-			character.debugDraw(model.getDebugDraw());
+		if (settings.getSetting(SwimSettings.DrawDebugChars).enabled) {
+			for (SwimCharacter character : scenario.getCharacters())
+				character.debugDraw(model.getDebugDraw());
 		}
 	}
 

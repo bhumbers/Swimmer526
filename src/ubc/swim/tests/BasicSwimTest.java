@@ -29,10 +29,7 @@ package ubc.swim.tests;
 import java.util.Formatter;
 import java.util.List;
 
-import org.jbox2d.collision.shapes.PolygonShape;
-import org.jbox2d.common.Vec2;
-import org.jbox2d.dynamics.Body;
-import org.jbox2d.dynamics.BodyDef;
+import org.jbox2d.common.Color3f;
 
 import ubc.swim.gui.SwimSettings;
 import ubc.swim.optimization.SwimmerOptimization;
@@ -48,58 +45,59 @@ import ubc.swim.world.characters.SwimCharacter;
 public class BasicSwimTest extends SwimTest {
 	
 	private SwimCharacter mainChar;
-	private String nameSuffix = "";
+	private String ID = "basic_test";
 	
-	public BasicSwimTest(String suffix, List<String> charIDs) {
+	/**
+	 * Creates a new swim test with chars specified by given IDs.
+	 * Suffix list is used to load control strategy variants for the corresponding char in the charID list
+	 * NOTE: charIDs and suffixes lists MUST be same length; sorry, but no time to implement handling for other cases
+	 * @param ID A technical identifier used by this test; used to identify output images
+	 * @param charIDs
+	 * @param suffixes
+	 */
+	public BasicSwimTest(String ID, List<String> charIDs, List<String> suffixes) {
 		super();
 		
-		this.nameSuffix = suffix;
+		this.ID = ID;
 		
-		for (String charID : charIDs)
-			this.charIDs.add(charID);
-	}
-	
-	@Override
-	public float getDefaultCameraScale() {
-		return 100;
+		for (int i = 0; i < charIDs.size(); i++) {
+			this.charIDs.add(charIDs.get(i));
+			this.suffixes.add(suffixes.get(i));
+		}
 	}
 	
 	@Override
 	public void initTest() {		
-		Body ground = null;
-		{
-			BodyDef bd = new BodyDef();
-			ground = getWorld().createBody(bd);
-
-			PolygonShape shape = new PolygonShape();
-			shape.setAsEdge(new Vec2(-40.0f, 0.0f), new Vec2(40.0f, 0.0f));
-			ground.createFixture(shape, 0.0f);
-		}
-		
-//		//TODO: remove. Testing controls
-//		for (SwimCharacter character : scenario.getCharacters()) {
-//			double[] control = new double[character.getNumControlDimensions()];
-//			for (int i = 0; i < 7; i += 7) {
-//				control[i] = 1.0f;
-//				control[i+1] = 1.0f;
-//				control[i+2] = 1.0f;
-//				control[i+3] = 0.1f;
-//				control[i+4] = 1.0f;
-//				control[i+5] = 0.7f;
-//				control[i+6] = 0.1f;
-//			}
+//		Body ground = null;
+//		{
+//			BodyDef bd = new BodyDef();
+//			ground = getWorld().createBody(bd);
 //
-//			//Testing IO
-//			SwimmerOptimization.writeToCSV(control, "./controlData", "blah");
-//			control = SwimmerOptimization.readFromCSV("./controlData", "blah");
-//			
-//			character.setControlParams(control);
+//			PolygonShape shape = new PolygonShape();
+//			shape.setAsEdge(new Vec2(-40.0f, 0.0f), new Vec2(40.0f, 0.0f));
+//			ground.createFixture(shape, 0.0f);
 //		}
 		
+		List<SwimCharacter> characters = scenario.getCharacters();
+		
+		//Try to assign different debug colors to each character 
+		Color3f[] debugColors = new Color3f[]{
+				new Color3f(1.0f, 0.0f, 0.0f),
+				new Color3f(0.0f, 1.0f, 0.0f),
+				new Color3f(0.0f, 0.0f, 1.0f)
+		}; 
+		for (int i = 0; i < characters.size(); i++) {
+			Color3f debugColor = debugColors[i % debugColors.length];
+			characters.get(i).setDebugColor(debugColor);
+		}
+		
 		//Apply optimized control strategy
-		if (scenario.getCharacters().size() > 0) {
-			mainChar = scenario.getCharacters().get(0);
-			mainChar.setControlParams(SwimmerOptimization.readFromCSV("./controlData", charIDs.get(0)));
+		for (int i = 0; i < characters.size(); i++) {
+			SwimCharacter character = characters.get(i);
+			String completeCharID = charIDs.get(i);
+			String suffix = suffixes.get(i);
+			if (suffix.length() > 0) completeCharID += "_" + suffix;
+			character.setControlParams(SwimmerOptimization.readFromCSV("./controlData", completeCharID));
 		}
 	}
 	
@@ -124,7 +122,12 @@ public class BasicSwimTest extends SwimTest {
 
 	@Override
 	public String getTestName() {
-		return "Basic Swim Test: " + nameSuffix;
+		return "Basic Swim Test: " + ID;
+	}
+	
+	@Override
+	public String getTestID() {
+		return ID;
 	}
 
 }
