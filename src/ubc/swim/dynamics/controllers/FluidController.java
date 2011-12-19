@@ -81,7 +81,11 @@ public class FluidController extends DynamicsController {
 		ArrayList<Edge> subEdgesForShape = new ArrayList<Edge>();
 		
 		//A vector perpendicular to the relative fluid velocity for a submerged edge (used in drag calcs)
-		Vec2 velRelToFluidPerp = new Vec2();
+		Vec2 perpToVelRelToFluid = new Vec2();
+		//Vector giving component of relative fluid velocity normal to a submerged edge (used in drag calcs)
+		Vec2 velRelToFluidAlongNormal = new Vec2();
+		//Vector giving a specific drag force (used in drag calcs)
+		Vec2 dragForce = new Vec2();
 		
 		for (Body body : bodies) {
 			if (body.m_type == BodyType.STATIC)
@@ -145,18 +149,23 @@ public class FluidController extends DynamicsController {
 						velRelToFluid.subLocal(fluidVel);
 						float velDotNorm = Vec2.dot(velRelToFluid, edgeNorm);
 						if (velDotNorm > 0) {
+							edgeNorm.normalize();
 							//Find length of the edge when projected onto perpendicular to fluid vel
-							velRelToFluidPerp.set(velRelToFluid.y, -velRelToFluid.x);
-							velRelToFluidPerp.normalize();
-							float projectedEdgeLength = Math.abs(Vec2.dot(edgeDir, velRelToFluidPerp));
+							perpToVelRelToFluid.set(velRelToFluid.y, -velRelToFluid.x);
+							perpToVelRelToFluid.normalize();
+							float projectedEdgeLength = Math.abs(Vec2.dot(edgeDir, perpToVelRelToFluid));
 							
-							//Convert relative velocity into drag force
-							//TODO: use force proportional to vel squared?
-							velRelToFluid.mulLocal(-linearDrag*projectedEdgeLength*invNumEdgePoints);
-							body.applyForce(velRelToFluid,edgePoint);
+							//Find drag force directed along velocity component normal to the edge
+							velRelToFluidAlongNormal.set(edgeNorm);
+							velRelToFluidAlongNormal.mulLocal(Vec2.dot(velRelToFluid, edgeNorm));
+							
+							dragForce.set(velRelToFluidAlongNormal);
+							//TODO: use force proportional to vel squared? (if so, normalize drag force before multiplying by lenSqrd)
+							dragForce.mulLocal(-linearDrag*projectedEdgeLength*invNumEdgePoints);
+							body.applyForce(dragForce,edgePoint);
 							
 							//DEBUGGING: Save force for debug drawing later
-							Vec2 dragForcePoint = velRelToFluid.mul(0.1f);
+							Vec2 dragForcePoint = dragForce.mul(0.1f);
 							dragForcePoint.addLocal(edgePoint);
 							dragForces.add(new Edge(edgePoint.x, edgePoint.y, dragForcePoint.x, dragForcePoint.y));
 						}
