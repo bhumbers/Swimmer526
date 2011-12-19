@@ -39,7 +39,6 @@ import java.awt.image.BufferedImage;
 import java.awt.image.ColorModel;
 import java.awt.image.PixelGrabber;
 import java.io.File;
-import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.Iterator;
 
