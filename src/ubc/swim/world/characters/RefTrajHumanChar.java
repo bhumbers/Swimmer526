@@ -391,12 +391,12 @@ public class RefTrajHumanChar extends SwimCharacter {
 				int paramsIdxOffset = j * NUM_PARAMS_PER_SINE_BASIS_FUNC;
 				
 				float weight = 		(float)params[paramsIdx + paramsIdxOffset];	
+				float phaseOffset = (float)params[paramsIdx + paramsIdxOffset + 1];
 
-				float period = MIN_STROKE_PERIOD + Math.abs((float)params[paramsIdx + paramsIdxOffset + 1]);
+				float period = shoulderPeriod;
 				//Use normalized period if driven by right shoulder phase
 				if (USE_RIGHT_SHOULDER_ANGLE_AS_PHASE)
-					period = 1.0f;		
-				float phaseOffset = (float)params[paramsIdx + paramsIdxOffset + 2];
+					period = 1.0f;	
 				
 				//If using crawl stroke, add additional 180 degree phase offset to left side vs. right side
 				if (stroke == Stroke.CRAWL && j > leftSideParamsStartIdx)
