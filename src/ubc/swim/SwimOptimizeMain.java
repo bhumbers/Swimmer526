@@ -46,8 +46,8 @@ public class SwimOptimizeMain {
 				fitFun.setMaxRuntime(10); //simulate for a relatively long time to avoid instabilities after fitness test ends
 				fitFun.setDisplacementErrorTermWeight(1.0f);
 				fitFun.setSpeedTermWeight(0.0f); //ignore speed for this one; use displacment
-				fitFun.setEnergyTermWeight(0.0f);
-				fitFun.setRootAngleTermWeight(0.0f);
+				fitFun.setEnergyTermWeight(1.0f);
+				fitFun.setRootAngleTermWeight(1.0f);
 				break;
 			case "humanCrawl":
 				optDesc = "crawl stroke with human character";
@@ -66,15 +66,18 @@ public class SwimOptimizeMain {
 				opt.setMinStoppingCost(1);
 				opt.setMaxIters(50);
 				opt.setIterationsPerOutput(10);
+				fitFun.setSpeedTermWeight(10.0f);
+				fitFun.setEnergyTermWeight(1.0f);
+				fitFun.setRootAngleTermWeight(1000.0f);
 				break;
 			case "humanFlyRefTraj":
 				optDesc = "fly stroke with human character (reference trajectory version)";
 				opt.setMinStoppingCost(1);
-				opt.setMaxIters(20);
+				opt.setMaxIters(50);
 				opt.setIterationsPerOutput(10);
 				fitFun.setSpeedTermWeight(10.0f);
 				fitFun.setEnergyTermWeight(1.0f);
-				fitFun.setRootAngleTermWeight(1000000.0f);
+				fitFun.setRootAngleTermWeight(1000.0f);
 				break;
 		}
 		

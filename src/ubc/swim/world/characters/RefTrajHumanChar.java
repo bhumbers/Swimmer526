@@ -414,8 +414,8 @@ public class RefTrajHumanChar extends SwimCharacter {
 		
 		prevTorque = 0.0f;
 		
-		final float PD_GAIN = 0.5f;
-		final float PD_DAMPING = 0.05f;
+		final float PD_GAIN = 2.0f;
+		final float PD_DAMPING = 0.001f;
 		
 		float phase = runtime; //normally, use time as phase
 		//May use normalized angle of right shoulder as phase instead
@@ -463,8 +463,10 @@ public class RefTrajHumanChar extends SwimCharacter {
 			
 			float targAngle = trajectory.getValue(phase) % TWO_PI;
 			
+			float distFromTargAngle = TrajectoryUtil.distanceBetweenAngles(jointAngle, targAngle); //handles cyclic nature of angles
+			
 			//PD controller
-			float torque = -PD_GAIN * (jointAngle - targAngle) - PD_DAMPING * jointSpeed;
+			float torque = -PD_GAIN * (distFromTargAngle) - PD_DAMPING * jointSpeed;
 			
 			joint.getBodyA().applyTorque(torque);
 			joint.getBodyB().applyTorque(torque);

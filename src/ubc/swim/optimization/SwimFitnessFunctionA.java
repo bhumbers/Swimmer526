@@ -105,7 +105,7 @@ public class SwimFitnessFunctionA extends SwimFitnessFunction {
 			
 			//Minimize total applied torques
 			if (energyTermWeight != 0) {
-				float torquesApplied = character.getPrevTorque();
+				float torquesApplied = Math.abs(character.getPrevTorque());
 				evaluation += energyTermWeight * torquesApplied;
 			}
 			

@@ -12,9 +12,9 @@ public class TrajectoryUtil {
 	{
 	    float delta = (b - a) % TWO_PI;
 	    if (delta > Math.PI) 
-	    	delta = TWO_PI - delta;
+	    	delta = -TWO_PI + delta;
 	    if (delta < -Math.PI) 
-	    	delta = -(TWO_PI + delta);
+	    	delta = TWO_PI + delta;
 	    return delta;
 	}
 }

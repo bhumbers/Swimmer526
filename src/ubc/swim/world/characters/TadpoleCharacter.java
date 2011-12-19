@@ -63,7 +63,7 @@ public class TadpoleCharacter extends SwimCharacter {
 	@Override
 	public void initialize(World world) {
 		float defaultDensity = 1.1f;
-		float deckDensity = 1.3f;
+		float deckDensity = 1.1f;
 		
 		//Create the main deck
 		Body deck;
@@ -150,8 +150,8 @@ public class TadpoleCharacter extends SwimCharacter {
 		
 		prevTorque = 0.0f;
 		
-		final float PD_GAIN = 1.0f;
-		final float PD_DAMPING = 0.05f;
+		final float PD_GAIN = 0.4f;
+		final float PD_DAMPING = 0.01f;
 		final float TWO_PI = (float)(2 * Math.PI);
 		
 		for (int i = 0; i < joints.size(); i++) {
