@@ -410,7 +410,7 @@ public class RefTrajHumanChar extends SwimCharacter {
 		
 		prevTorque = 0.0f;
 		
-		final float PD_GAIN = 2.0f;
+		final float PD_GAIN = 1.0f;
 		final float PD_DAMPING = 0.001f;
 		
 		float phase = runtime; //normally, use time as phase
@@ -508,35 +508,35 @@ public class RefTrajHumanChar extends SwimCharacter {
 				drawPolygon((PolygonShape) fixture.getShape(), transform, color, debugDraw, true);
 		}
 		
-		//Draw current phase if using right shoulder phase
-		if (USE_RIGHT_SHOULDER_ANGLE_AS_PHASE) {
-			float phase = getRightShoulderPhase();
-			
-			float phaseBoxWidth = 40;
-			float phaseBoxHeight = 200;
-			float targetPhaseLevelWidth = 5;
-			float phaseLevel = phaseBoxHeight * phase;
-			float targetPhaseLevel = phaseBoxHeight * targetRightShoulderPhase;
-			
-			//Background holder
-			PolygonShape box = new PolygonShape();
-			Transform phaseBoxTransform = new Transform(new Vec2(20, 300), new Mat22(1, 0, 0, 1));
-			box.setAsBox(phaseBoxWidth/2, phaseBoxHeight/2);
-			drawPolygon(box, phaseBoxTransform, new Color3f(1, 1, 1), debugDraw, false);
-			
-			//Phase level
-			box = new PolygonShape();
-			Transform phaseLevelTransform = new Transform(phaseBoxTransform);
-			phaseLevelTransform.position.y += (phaseBoxHeight/2 - phaseLevel/2);
-			box.setAsBox(phaseBoxWidth/2, phaseLevel/2);
-			drawPolygon(box, phaseLevelTransform, new Color3f(1,0,1), debugDraw, false);
-			
-			//Target phase level
-			box = new PolygonShape();
-			Transform targetLevelTransform = new Transform(phaseBoxTransform);
-			targetLevelTransform.position.y += (targetPhaseLevelWidth/2 + phaseBoxHeight/2 - targetPhaseLevel);
-			box.setAsBox(phaseBoxWidth/2, targetPhaseLevelWidth/2); //just a moving horizontal level line
-			drawPolygon(box, targetLevelTransform, new Color3f(1,1,0), debugDraw, false);
-		}
+//		//Draw current phase if using right shoulder phase
+//		if (USE_RIGHT_SHOULDER_ANGLE_AS_PHASE) {
+//			float phase = getRightShoulderPhase();
+//			
+//			float phaseBoxWidth = 40;
+//			float phaseBoxHeight = 200;
+//			float targetPhaseLevelWidth = 5;
+//			float phaseLevel = phaseBoxHeight * phase;
+//			float targetPhaseLevel = phaseBoxHeight * targetRightShoulderPhase;
+//			
+//			//Background holder
+//			PolygonShape box = new PolygonShape();
+//			Transform phaseBoxTransform = new Transform(new Vec2(20, 300), new Mat22(1, 0, 0, 1));
+//			box.setAsBox(phaseBoxWidth/2, phaseBoxHeight/2);
+//			drawPolygon(box, phaseBoxTransform, new Color3f(1, 1, 1), debugDraw, false);
+//			
+//			//Phase level
+//			box = new PolygonShape();
+//			Transform phaseLevelTransform = new Transform(phaseBoxTransform);
+//			phaseLevelTransform.position.y += (phaseBoxHeight/2 - phaseLevel/2);
+//			box.setAsBox(phaseBoxWidth/2, phaseLevel/2);
+//			drawPolygon(box, phaseLevelTransform, new Color3f(1,0,1), debugDraw, false);
+//			
+//			//Target phase level
+//			box = new PolygonShape();
+//			Transform targetLevelTransform = new Transform(phaseBoxTransform);
+//			targetLevelTransform.position.y += (targetPhaseLevelWidth/2 + phaseBoxHeight/2 - targetPhaseLevel);
+//			box.setAsBox(phaseBoxWidth/2, targetPhaseLevelWidth/2); //just a moving horizontal level line
+//			drawPolygon(box, targetLevelTransform, new Color3f(1,1,0), debugDraw, false);
+//		}
 	}
 }

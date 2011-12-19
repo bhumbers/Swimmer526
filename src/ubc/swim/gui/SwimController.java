@@ -368,8 +368,8 @@ public class SwimController implements Runnable {
 						    stream.flush();
 						    stream.close();
 						}
-					} catch (IOException ie) {
-				      ie.printStackTrace();
+					} catch (Exception exception) {
+				      exception.printStackTrace();
 				    }
 				}
 			}

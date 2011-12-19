@@ -25,7 +25,10 @@ public class SwimOptimizeMain {
 		//Default just to optimizing paddle char
 		if (numCharsToOptimize == 0) {
 			numCharsToOptimize = 1;
-			args = new String[]{"paddle", ""};
+			if (args.length == 0)
+				args = new String[]{"paddle", ""};
+			else
+				args = new String[]{args[0], ""};
 		}
 			
 		//Run optimization based on given arg pair
@@ -59,8 +62,8 @@ public class SwimOptimizeMain {
 			//Set experiment-specific values
 			switch (charID) {
 				case "paddle":
-					float goalSpeed1 = 0.2f;
-					float goalSpeed2 = 1.0f;
+					float goalSpeed1 = 0.5f;
+					float goalSpeed2 = 2.0f;
 					float goalSpeed3 = 5.0f;
 					
 					//Paddle experiments: use suffices to specify different experiments. Kinda hacky, but meh...
@@ -96,27 +99,28 @@ public class SwimOptimizeMain {
 							fitFun.setSpeedTermWeight(1.0f);
 							fitFun.setDisplacementErrorTermWeight(0);
 							fitFun.setEnergyTermWeight(0.0f);
-							fitFun.setRootAngleTermWeight(100);
+							fitFun.setRootAngleTermWeight(10);
 							if (suffix.equals("orientation1")) 			fitFun.setGoalSpeed(goalSpeed1);
 							else if (suffix.equals("orientation2")) 	fitFun.setGoalSpeed(goalSpeed2);
 							else if (suffix.equals("orientation3")) 	fitFun.setGoalSpeed(goalSpeed3);
 							break;
 						
 					}
+					fitFun.setMaxRuntime(10);
 					opt.setMinStoppingCost(0.0000000001);
 					opt.setMaxIters(200);
 					opt.setIterationsPerOutput(50);
 					break;
 				case "tadpole":
 					opt.setMinStoppingCost(0.0000000001);
-					opt.setMaxIters(100);
+					opt.setMaxIters(300);
 					opt.setIterationsPerOutput(10);
 					fitFun.setGoalDisplacement(5.0f); //meters
 					fitFun.setMaxRuntime(10); //simulate for a relatively long time to avoid instabilities after fitness test ends
 					fitFun.setDisplacementErrorTermWeight(1.0f);
 					fitFun.setSpeedTermWeight(0.0f); //ignore speed for this one; use displacment
-					fitFun.setEnergyTermWeight(1.0f);
-					fitFun.setRootAngleTermWeight(1.0f);
+					fitFun.setEnergyTermWeight(0.0f);
+					fitFun.setRootAngleTermWeight(0.0f);
 					break;
 				case "humanCrawl":
 					opt.setMinStoppingCost(1);
@@ -125,7 +129,7 @@ public class SwimOptimizeMain {
 					break;
 				case "humanFly":
 					opt.setMinStoppingCost(1);
-					opt.setMaxIters(150);
+					opt.setMaxIters(300);
 					opt.setIterationsPerOutput(10);
 					break;
 				case "humanCrawlRefTraj":

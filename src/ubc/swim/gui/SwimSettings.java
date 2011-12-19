@@ -83,7 +83,7 @@ public class SwimSettings {
     addSetting(new SwimSetting(WarmStarting, SettingType.ENGINE, true));
     addSetting(new SwimSetting(ContinuousCollision, SettingType.ENGINE, true));
     addSetting(new SwimSetting(DrawShapes, SettingType.DRAWING, false));
-    addSetting(new SwimSetting(DrawJoints, SettingType.DRAWING, true));
+    addSetting(new SwimSetting(DrawJoints, SettingType.DRAWING, false));
     addSetting(new SwimSetting(DrawAABBs, SettingType.DRAWING, false));
     addSetting(new SwimSetting(DrawPairs, SettingType.DRAWING, false));
     addSetting(new SwimSetting(DrawContactPoints, SettingType.DRAWING, false));
@@ -93,7 +93,7 @@ public class SwimSettings {
     addSetting(new SwimSetting(DrawHelp, SettingType.DRAWING, false));
     addSetting(new SwimSetting(DrawTree, SettingType.DRAWING, false));
     
-    addSetting(new SwimSetting(DrawDragForces, SettingType.DRAWING, true));
+    addSetting(new SwimSetting(DrawDragForces, SettingType.DRAWING, false));
     addSetting(new SwimSetting(DrawDebugChars, SettingType.DRAWING, true));
     
     addSetting(new SwimSetting(FluidDensity, SettingType.ENGINE, 1.1, 0, 5, 100));
