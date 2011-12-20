@@ -67,7 +67,7 @@ public class SwimSidePanel extends JPanel implements ChangeListener, ActionListe
   final SwimModel model;
   final SwimController controller;
 
-  public JComboBox<ListItem> tests;
+  public JComboBox tests;
 
   private JButton pauseButton = new JButton("Pause");
   private JButton recordButton = new JButton("Record");
@@ -104,16 +104,16 @@ public class SwimSidePanel extends JPanel implements ChangeListener, ActionListe
     top.setLayout(new GridLayout(0, 1));
     top.setBorder(BorderFactory.createCompoundBorder(new EtchedBorder(EtchedBorder.LOWERED),
         BorderFactory.createEmptyBorder(10, 10, 10, 10)));
-    tests = new JComboBox<ListItem>(model.getComboModel());
+    tests = new JComboBox(model.getComboModel());
     tests.setMaximumRowCount(30);
     tests.setMaximumSize(new Dimension(250, 20));
     tests.addActionListener(this);
-    tests.setRenderer(new ListCellRenderer<Object>() {
+    tests.setRenderer(new ListCellRenderer() {
       JLabel categoryLabel = null;
       JLabel testLabel = null;
 
       @Override
-      public Component getListCellRendererComponent(JList<?> list, Object value, int index,
+      public Component getListCellRendererComponent(JList list, Object value, int index,
           boolean isSelected, boolean cellHasFocus) {
         ListItem item = (ListItem) value;
 

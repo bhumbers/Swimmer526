@@ -49,28 +49,18 @@ public class ScenarioLibrary {
 		final float REF_TRAJ_CRAWL_STROKE_PERIOD = 1.0f; //seconds
 		final float REF_TRAJ_FLY_STROKE_PERIOD   = 1.0f; //seconds
 		
-		switch (charID) {
-			case "paddle":
-				character = new PaddleChar();
-				break;
-			case "tadpole":
-				character = new TadpoleCharacter(4);
-				break;
-			case "humanCrawl":
-				character = new HumanChar(Stroke.CRAWL);
-				break;
-			case "humanFly":
-				character = new HumanChar(Stroke.FLY);
-				break;
-			case "humanCrawlRefTraj":
-				character = new RefTrajHumanChar(Stroke.CRAWL, REF_TRAJ_CRAWL_STROKE_PERIOD);
-				break;
-			case "humanFlyRefTraj":
-				character = new RefTrajHumanChar(Stroke.FLY, REF_TRAJ_FLY_STROKE_PERIOD);
-				break;
-			default:
-				break;
-		}
+		if (charID.equals("paddle")) 
+			character = new PaddleChar();
+		if (charID.equals("tadpole")) 
+			character = new TadpoleCharacter(4);
+		if (charID.equals("humanCrawl")) 
+			character = new HumanChar(Stroke.CRAWL);
+		if (charID.equals("humanFly")) 
+			character = new HumanChar(Stroke.FLY);
+		if (charID.equals("humanCrawlRefTraj")) 
+			character = new RefTrajHumanChar(Stroke.CRAWL, REF_TRAJ_CRAWL_STROKE_PERIOD);
+		if (charID.equals("humanFlyRefTraj")) 
+			character = new RefTrajHumanChar(Stroke.FLY, REF_TRAJ_FLY_STROKE_PERIOD);
 		
 		return character;
 	}
