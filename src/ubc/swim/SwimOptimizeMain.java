@@ -103,7 +103,13 @@ public class SwimOptimizeMain {
 			}
 			else if (charID.equals("tadpole")) {
 				opt.setMinStoppingCost(0.0000000001);
-				opt.setMaxIters(300);
+				
+				//OPTIMIZATION TIME EXPERIMENT: Show controller after a few, a moderate number, and many iterations
+				if (suffix.equals("lowIters")) 			opt.setMaxIters(1);
+				else if (suffix.equals("medIters")) 	opt.setMaxIters(5);
+				else if (suffix.equals("highIters")) 	opt.setMaxIters(50);
+				else opt.setMaxIters(300);
+				
 				opt.setIterationsPerOutput(10);
 				fitFun.setGoalDisplacement(5.0f); //meters
 				fitFun.setMaxRuntime(10); //simulate for a relatively long time to avoid instabilities after fitness test ends

@@ -82,7 +82,7 @@ public class SwimSettings {
     addSetting(new SwimSetting(VelocityIterations, SettingType.ENGINE, 8, 1, 100));
     addSetting(new SwimSetting(WarmStarting, SettingType.ENGINE, true));
     addSetting(new SwimSetting(ContinuousCollision, SettingType.ENGINE, true));
-    addSetting(new SwimSetting(DrawShapes, SettingType.DRAWING, false));
+    addSetting(new SwimSetting(DrawShapes, SettingType.DRAWING, true));
     addSetting(new SwimSetting(DrawJoints, SettingType.DRAWING, false));
     addSetting(new SwimSetting(DrawAABBs, SettingType.DRAWING, false));
     addSetting(new SwimSetting(DrawPairs, SettingType.DRAWING, false));

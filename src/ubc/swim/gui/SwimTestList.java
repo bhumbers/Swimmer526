@@ -46,6 +46,9 @@ public class SwimTestList {
 	  argModel.addCategory("Basic");
 	  argModel.addTest(new BasicSwimTest("paddle", Arrays.asList("paddle"), Arrays.asList("")));
 	  argModel.addTest(new BasicSwimTest("tadpole", Arrays.asList("tadpole"), Arrays.asList("")));
+	  argModel.addTest(new BasicSwimTest("tadpole_lowIters", Arrays.asList("tadpole"), Arrays.asList("lowIters")));
+	  argModel.addTest(new BasicSwimTest("tadpole_medIters", Arrays.asList("tadpole"), Arrays.asList("medIters")));
+	  argModel.addTest(new BasicSwimTest("tadpole_highIters", Arrays.asList("tadpole"), Arrays.asList("highIters")));
       argModel.addTest(new BasicSwimTest("humanCrawlRefTraj", Arrays.asList("humanCrawlRefTraj"), Arrays.asList("")));
       argModel.addTest(new BasicSwimTest("humanFlyRefTraj", Arrays.asList("humanFlyRefTraj"), Arrays.asList("")));
       argModel.addTest(new BasicSwimTest("humanCrawl", Arrays.asList("humanCrawl"), Arrays.asList("")));
